@@ -1,13 +1,11 @@
-﻿<Window x:Class="BlackJackTrainner.MainWindow"
+﻿<Window x:Class="BlackJackSimulatorWPF.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:converters="clr-namespace:Cas.Common.WPF.Converters;assembly=Cas.Common.WPF"
-        xmlns:viewModel1="clr-namespace:BlackJackTrainner.ViewModel"
-        xmlns:view="clr-namespace:BlackJackTrainner.View"
+        xmlns:viewModel1="clr-namespace:BlackJackSimulatorWPF.ViewModel"
+        xmlns:view="clr-namespace:BlackJackSimulatorWPF.View"
         d:DataContext="{x:Static viewModel1:Locator.Main}"
-        
         Icon="../Icon/Icon.ico"
         mc:Ignorable="d"
         Title="MainWindow"  MinHeight="450" MinWidth="800">
@@ -15,10 +13,6 @@
     <Window.Resources>
 
         <ResourceDictionary>
-            <converters:CollapsedWhenFalseConverter x:Key="CollapsedWhenFalseConverter" />
-            <converters:CollapsedWhenTrueConverter x:Key="CollapsedWhenTrueConverter" />
-
-          
 
             <Style TargetType="{x:Type Grid}" x:Key="HeaderGridStyle">
                 <Setter Property="Background" Value="Gray" />
