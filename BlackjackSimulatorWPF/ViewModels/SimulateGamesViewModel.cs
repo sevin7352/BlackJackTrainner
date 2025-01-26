@@ -13,6 +13,7 @@ using CommunityToolkit.Mvvm;
 using Newtonsoft.Json;
 using PlayingCards;
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Threading;
 
 namespace BlackJackSimulatorWPF.ViewModel
 {
@@ -20,7 +21,8 @@ namespace BlackJackSimulatorWPF.ViewModel
     {
         public SimulateGamesViewModel()
         {
-           StartCommand = new RelayCommand(Start, CanStart);
+            
+            StartCommand = new RelayCommand(Start, CanStart);
            SaveResultsCommand = new RelayCommand(SaveResults);
            LoadResultsCommand = new RelayCommand(LoadResults);
            SaveAsCsvCommand = new RelayCommand(SaveResultsAsCsv);
@@ -40,6 +42,7 @@ namespace BlackJackSimulatorWPF.ViewModel
            DealerValue = 7;
         }
 
+        
         public Random Random { get; set; }
         public ICommand StartCommand { get; }
         public ICommand SaveResultsCommand { get; }

@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.Input;
 using PlayingCards;
 using System.Windows.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Windows;
 
 namespace BlackJackSimulatorWPF.ViewModel
 {
@@ -17,6 +18,7 @@ namespace BlackJackSimulatorWPF.ViewModel
     {
         public BlackJackPracticeViewModel()
         {
+            
             GameState = new GameState()
             {
                 NumberOfHandsToPlay = 1,
@@ -27,17 +29,19 @@ namespace BlackJackSimulatorWPF.ViewModel
             HitCommand = new RelayCommand(Hit, CanHit);
             SplitCommand = new RelayCommand(Split, CanSplit);
             DoubleCommand = new RelayCommand(DoubleDown, CanDoubleDown);
+            
         }
 
+     
         public bool HasSecondHand { get { return GameState.PlayersHand.Count == 2; } }
 
         public GameState GameState { get; set; }
 
-        public ICommand DealCommand { get; }
-        public ICommand StayCommand { get; }
-        public ICommand HitCommand { get; }
-        public ICommand SplitCommand { get; }
-        public ICommand DoubleCommand { get; }
+        public RelayCommand DealCommand { get; }
+        public RelayCommand StayCommand { get; }
+        public RelayCommand HitCommand { get; }
+        public RelayCommand SplitCommand { get; }
+        public RelayCommand DoubleCommand { get; }
 
 
 
@@ -67,6 +71,7 @@ namespace BlackJackSimulatorWPF.ViewModel
             return GameState.PlayersTurnDone;
         }
 
+
         public int NumberOfHands
         {
             get { return GameState.HandsPlayed; }
@@ -75,6 +80,7 @@ namespace BlackJackSimulatorWPF.ViewModel
         public void Deal()
         {
             GameState.Deal();
+            UpdateDisplay();
             OnPropertyChanged();
         }
 
@@ -110,6 +116,7 @@ namespace BlackJackSimulatorWPF.ViewModel
             UpdateDisplay();
             OnPropertyChanged(); ;
         }
+        
         public bool CanDoubleDown()
         {
             return GameState.canDoubleDown;
@@ -122,18 +129,26 @@ namespace BlackJackSimulatorWPF.ViewModel
         }
 
         //Need to Update to force Display To Update?
-        public void UpdateDisplay(int seconds = 4)
+        public void UpdateDisplay(int seconds = 0)
         {
             if (GameState.PlayersTurnDone)
             {
                 GameState.FinishDealersHand();
             }
+            
             Task.Factory.StartNew(() =>
             {
                 Thread.Sleep(1000 * seconds);
-
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(GameState));
+                Application.Current.Dispatcher.BeginInvoke(() => {
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(GameState));
+                    DealCommand.NotifyCanExecuteChanged();
+                    SplitCommand.NotifyCanExecuteChanged();
+                    StayCommand.NotifyCanExecuteChanged();
+                    DoubleCommand.NotifyCanExecuteChanged();
+                    HitCommand.NotifyCanExecuteChanged();
+                });
+                
                 
             });
         }

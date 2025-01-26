@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CommunityToolkit.Mvvm;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.ComponentModel;
-using BlackJackSimulatorWPF.ViewModel;
+
 
 namespace BlackJackSimulatorWPF.ViewModel
 {
@@ -16,8 +16,10 @@ namespace BlackJackSimulatorWPF.ViewModel
 
         public MainWindowViewModel()
         {
+            Thread UIthread = Thread.CurrentThread;
             PracticeViewModel = new BlackJackPracticeViewModel();
             SimulateGamesViewModel = new SimulateGamesViewModel();
+            
         }
 
         public BlackJackPracticeViewModel PracticeViewModel { get; set; }
