@@ -17,14 +17,15 @@ using System.Windows.Shapes;
 namespace BlackJackSimulatorWPF.View
 {
     /// <summary>
-    /// Interaction logic for BlackJackPracticeView.xaml
+    /// Interaction logic for PlayersHandView.xaml
     /// </summary>
-    public partial class BlackJackPracticeView : UserControl
+    public partial class PlayersHandView : UserControl
     {
-        public BlackJackPracticeView()
+        public PlayersHandView()
         {
             InitializeComponent();
             
         }
+
     }
 }

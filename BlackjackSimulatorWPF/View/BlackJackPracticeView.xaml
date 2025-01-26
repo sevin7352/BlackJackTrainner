@@ -60,6 +60,7 @@
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
@@ -93,6 +94,8 @@
 
         </Grid>
         <xctk:IntegerUpDown Grid.Column="1" Grid.Row="0" Value="{Binding Path=GameState.TotalMoney}" IsEnabled="False" Background="White"></xctk:IntegerUpDown>
+        <TextBlock Grid.Row="0" Grid.Column="3" Background="WhiteSmoke">CurrentPlayerHand</TextBlock>
+        <xctk:IntegerUpDown Grid.Column="4" Grid.Row="0" Value="{Binding Path=GameState.CurrentPlayerIndex}" IsEnabled="False" Background="White"></xctk:IntegerUpDown>
         <Grid Grid.Column="2" Grid.Row="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"></RowDefinition>
@@ -124,58 +127,23 @@
         
         
         <xctk:IntegerUpDown Grid.Row="2" Grid.Column="2" Margin="4" Value="{Binding Path=GameState.Bet}" Minimum="0" HorizontalAlignment="Left" IsEnabled="{Binding Path=GameState.PlayersTurnDone}"></xctk:IntegerUpDown>
-        <Grid Grid.Column="2" Grid.Row="3">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"></RowDefinition>
-                <RowDefinition Height="Auto"></RowDefinition>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" ></ColumnDefinition>
-                <ColumnDefinition Width="Auto" ></ColumnDefinition>
-                <ColumnDefinition Width="Auto" ></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="Auto" ></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-            </Grid.ColumnDefinitions>
-            <Image Grid.Column="0" Grid.Row="0" Source="{Binding Path=GameState.CurrentPlayer.hand[0].GraphicPath,Mode=OneWay}"  MaxHeight="200" MaxWidth="80" Stretch="Uniform" Margin="4"></Image>
-            <Image Grid.Column="1" Grid.Row="0" Source="{Binding Path=GameState.CurrentPlayer.hand[1].GraphicPath,Mode=OneWay}" MaxHeight="200" MaxWidth="80" Stretch="Uniform" Margin="4"></Image>
-            <Image Grid.Column="2" Grid.Row="0" Source="{Binding Path=GameState.CurrentPlayer.hand[2].GraphicPath,Mode=OneWay}" MaxHeight="200" MaxWidth="80" Stretch="Uniform" Margin="4"></Image>
-            <Image Grid.Column="3" Grid.Row="0" Source="{Binding Path=GameState.CurrentPlayer.hand[3].GraphicPath,Mode=OneWay}" MaxHeight="200" MaxWidth="80" Stretch="Uniform" Margin="4"></Image>
-            <Image Grid.Column="4" Grid.Row="0" Source="{Binding Path=GameState.CurrentPlayer.hand[4].GraphicPath,Mode=OneWay}" MaxHeight="200" MaxWidth="80" Stretch="Uniform" Margin="4"></Image>
-            <Image Grid.Column="5" Grid.Row="0" Source="{Binding Path=GameState.CurrentPlayer.hand[5].GraphicPath,Mode=OneWay}" MaxHeight="200" MaxWidth="80" Stretch="Uniform" Margin="4"></Image>
-            <TextBlock Grid.Column="0" Grid.ColumnSpan="5" Grid.Row="1" Text="{Binding Path=GameState.PlayersHand[0].CurrentValue}" HorizontalAlignment="Center" Background="White"></TextBlock>
 
-        </Grid>
-        <Grid Grid.Column="3" Grid.Row="3">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"></RowDefinition>
-                <RowDefinition Height="Auto"></RowDefinition>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" ></ColumnDefinition>
-                <ColumnDefinition Width="Auto" ></ColumnDefinition>
-                <ColumnDefinition Width="Auto" ></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="Auto" ></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-            </Grid.ColumnDefinitions>
-            <Image Grid.Column="0" Grid.Row="0" Source="{Binding Path=GameState.PlayersHand[1].hand[0].GraphicPath,Mode=OneWay}"  MaxHeight="200" MaxWidth="80" Stretch="Uniform" Margin="4"></Image>
-            <Image Grid.Column="1" Grid.Row="0" Source="{Binding Path=GameState.PlayersHand[1].hand[1].GraphicPath,Mode=OneWay}" MaxHeight="200" MaxWidth="80" Stretch="Uniform" Margin="4"></Image>
-            <Image Grid.Column="2" Grid.Row="0" Source="{Binding Path=GameState.PlayersHand[1].hand[2].GraphicPath,Mode=OneWay}" MaxHeight="200" MaxWidth="80" Stretch="Uniform" Margin="4"></Image>
-            <Image Grid.Column="3" Grid.Row="0" Source="{Binding Path=GameState.PlayersHand[1].hand[3].GraphicPath,Mode=OneWay}" MaxHeight="200" MaxWidth="80" Stretch="Uniform" Margin="4"></Image>
-            <Image Grid.Column="4" Grid.Row="0" Source="{Binding Path=GameState.PlayersHand[1].hand[4].GraphicPath,Mode=OneWay}" MaxHeight="200" MaxWidth="80" Stretch="Uniform" Margin="4"></Image>
-            <Image Grid.Column="5" Grid.Row="0" Source="{Binding Path=GameState.PlayersHand[1].hand[5].GraphicPath,Mode=OneWay}" MaxHeight="200" MaxWidth="80" Stretch="Uniform" Margin="4"></Image>
-            <TextBlock Grid.Column="0" Grid.ColumnSpan="5" Grid.Row="1" Text="{Binding Path=GameState.PlayersHand[1].CurrentValue}" HorizontalAlignment="Center" Background="White"></TextBlock>
+        <ItemsControl x:Name="PlayersHandItemSource" ItemsSource="{Binding GameState.PlayersHand,Mode=TwoWay}" Grid.Column="2" Grid.Row="4" Grid.ColumnSpan="3">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <local:PlayersHandView />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        
+        
 
-        </Grid>
-
-        <Grid Grid.Column="1" Grid.ColumnSpan="4" Grid.Row="4">
+        <Grid Grid.Column="1" Grid.ColumnSpan="4" Grid.Row="5">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="Auto"></RowDefinition>

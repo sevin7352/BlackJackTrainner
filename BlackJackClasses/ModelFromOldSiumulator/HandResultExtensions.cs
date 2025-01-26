@@ -143,13 +143,13 @@ namespace BlackJackTrainner.Model
         public static HandSuggestions GetSingleHandSuggestions(this List<SingleHandResult> handResults, PlayersHand playersHand,Random random)
         {
             
-             if (DeckHelper.DeckCardNumber(playersHand.hand).IsHandSpecial())
+             if (DeckHelper.DeckCardNumber(playersHand.hand.ToList()).IsHandSpecial())
              {
 
                  if (playersHand.canSplit())
                  {
                      var splitresults = handResults.Where(p => playersHand.hand[0].Value == p.CurrentHand[0]&& p.CurrentHand.Length==1 && p.DealersUpCardValue == playersHand.DealersUpCardValue).ToList();
-                     var nonSplitresults = handResults.Where(p => DeckHelper.ContainsCardsValues(playersHand.hand, p.CurrentHand) && p.DealersUpCardValue == playersHand.DealersUpCardValue).ToList();
+                     var nonSplitresults = handResults.Where(p => DeckHelper.ContainsCardsValues(playersHand.hand.ToList(), p.CurrentHand) && p.DealersUpCardValue == playersHand.DealersUpCardValue).ToList();
                      List<ActionResult> actionResults = new List<ActionResult>();
                      if (splitresults.Count > 0)
                      {

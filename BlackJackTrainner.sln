@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178 d17.12
+VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlackJackTrainner", "BlackJackTrainner\BlackJackTrainner.csproj", "{C19D02C7-9A6C-4E38-82EA-A67657FB1BE8}"
 EndProject
@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlayingCards", "PlayingCard
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlackJackClasses", "BlackJackClasses\BlackJackClasses.csproj", "{059B8E8E-7B25-4E30-B4C9-A98A7597AFDA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlackjackSimulatorWPF", "BlackjackSimulatorWPF\BlackjackSimulatorWPF.csproj", "{64DC68C3-9EA3-4BEE-B560-92124F3B7E45}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlackJackSimulatorWPF", "BlackjackSimulatorWPF\BlackJackSimulatorWPF.csproj", "{64DC68C3-9EA3-4BEE-B560-92124F3B7E45}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

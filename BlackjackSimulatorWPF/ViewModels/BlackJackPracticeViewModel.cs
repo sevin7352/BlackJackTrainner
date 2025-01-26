@@ -11,6 +11,9 @@ using PlayingCards;
 using System.Windows.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Windows;
+using System.ComponentModel;
+using System.Windows.Data;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace BlackJackSimulatorWPF.ViewModel
 {
@@ -140,13 +143,15 @@ namespace BlackJackSimulatorWPF.ViewModel
             {
                 Thread.Sleep(1000 * seconds);
                 Application.Current.Dispatcher.BeginInvoke(() => {
-                    OnPropertyChanged();
+                   
                     OnPropertyChanged(nameof(GameState));
                     DealCommand.NotifyCanExecuteChanged();
                     SplitCommand.NotifyCanExecuteChanged();
                     StayCommand.NotifyCanExecuteChanged();
                     DoubleCommand.NotifyCanExecuteChanged();
                     HitCommand.NotifyCanExecuteChanged();
+                    OnPropertyChanged(nameof(GameState.PlayersHand));
+                    OnPropertyChanged(nameof(GameState.CurrentPlayerIndex));
                 });
                 
                 

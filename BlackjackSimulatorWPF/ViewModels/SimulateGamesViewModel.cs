@@ -332,7 +332,7 @@ namespace BlackJackSimulatorWPF.ViewModel
                     HandSuggestion = HandResultExtensions.GetRandomSuggestions(playersHand, Random);
                     break;
                 case PlayStrategiesTypes.SingleHandBook:
-                    HandSuggestion = SingleHandBook.LookUpSuggestions(playersHand.hand, playersHand.DealersUpCardValue, playersHand.canSplit());
+                    HandSuggestion = SingleHandBook.LookUpSuggestions(playersHand.hand.ToList(), playersHand.DealersUpCardValue, playersHand.canSplit());
                     break;
 
                 case PlayStrategiesTypes.SingleHandAdaptive:

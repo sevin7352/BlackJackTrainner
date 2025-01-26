@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace BlackJackTrainner.Model
 
         public PlayersHand(int startingBet)
         {
-            hand = new List<PlayingCard>();
+            hand = new ObservableCollection<PlayingCard>();
             ActionsTaken = new List<ActionTypes>();
             HandResults = new List<SingleHandResult>();
             HandResult = HandResultTypes.unkown;
@@ -23,7 +24,7 @@ namespace BlackJackTrainner.Model
             EndingBet = startingBet;
         }
 
-        public List<PlayingCard> hand { get; set; }
+        public ObservableCollection<PlayingCard> hand { get; set; }
         public List<ActionTypes> ActionsTaken { get; set; }
 
         public List<SingleHandResult> HandResults { get; set; }
@@ -37,7 +38,7 @@ namespace BlackJackTrainner.Model
 
         public int CurrentValue
         {
-            get { return GameStateExtensions.calculateValue(hand); }
+            get { return GameStateExtensions.calculateValue(hand.ToList()); }
         }
 
         public HandResultTypes HandResult { get; set; }

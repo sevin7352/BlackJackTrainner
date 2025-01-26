@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace BlackJackTrainner.Model
         {
             Random = new Random();
             Shute = new List<PlayingCard>();
-            PlayersHand = new List<PlayersHand>();
+            PlayersHand = new ObservableCollection<PlayersHand>();
             
             PlayedCards = new List<PlayingCard>();
             DealersHand = new List<PlayingCard>();
@@ -63,7 +64,7 @@ namespace BlackJackTrainner.Model
 
             CurrentPlayerIndex = 0;
             
-            PlayersHand = new List<PlayersHand>();
+            PlayersHand = new ObservableCollection<PlayersHand>();
             DealersHand = new List<PlayingCard>();
             
             TotalMoney = TotalMoney - (Bet * NumberOfHandsToPlay);
@@ -218,7 +219,7 @@ namespace BlackJackTrainner.Model
 
         public void stay()
         {
-            PlayersHand[CurrentPlayerIndex].HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand), CurrentPlayer.canSplit(), CurrentPlayer.canDouble()));
+            PlayersHand[CurrentPlayerIndex].HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), CurrentPlayer.canSplit(), CurrentPlayer.canDouble()));
             PlayersHand[CurrentPlayerIndex].handOver = true;
             PlayersHand[CurrentPlayerIndex].ActionsTaken.Add(ActionTypes.Stay);
         }
@@ -230,7 +231,7 @@ namespace BlackJackTrainner.Model
 
         public void Hit()
         {
-            PlayersHand[CurrentPlayerIndex].HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand), CurrentPlayer.canSplit(), CurrentPlayer.canDouble()));
+            PlayersHand[CurrentPlayerIndex].HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), CurrentPlayer.canSplit(), CurrentPlayer.canDouble()));
             PlayersHand[CurrentPlayerIndex].ActionsTaken.Add(ActionTypes.Hit);
             DealACard(false,CurrentPlayerIndex);
             if (PlayersHand[CurrentPlayerIndex].CurrentValue > 21)
@@ -254,7 +255,7 @@ namespace BlackJackTrainner.Model
 
         public void DoubleDown()
         {
-            PlayersHand[CurrentPlayerIndex].HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand), CurrentPlayer.canSplit(), CurrentPlayer.canDouble()));
+            PlayersHand[CurrentPlayerIndex].HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), CurrentPlayer.canSplit(), CurrentPlayer.canDouble()));
             PlayersHand[CurrentPlayerIndex].ActionsTaken.Add(ActionTypes.Double);
             PlayersHand[CurrentPlayerIndex].handOver = true;
             TotalMoney = TotalMoney - PlayersHand[CurrentPlayerIndex].StartingBet;
@@ -272,11 +273,11 @@ namespace BlackJackTrainner.Model
             var serializedobject = JsonConvert.SerializeObject(PlayersHand[CurrentPlayerIndex]);
             PlayersHand handToAdd = JsonConvert.DeserializeObject<PlayersHand>(serializedobject);
             handToAdd.hand.RemoveAt(1);
-            handToAdd.HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand), true, CurrentPlayer.canDouble()));
+            handToAdd.HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), true, CurrentPlayer.canDouble()));
             handToAdd.OverrideCanSplit = true;
             handToAdd.ActionsTaken.Add(ActionTypes.Split);
             PlayersHand[CurrentPlayerIndex].ActionsTaken.Add(ActionTypes.Split);
-            PlayersHand[CurrentPlayerIndex].HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand), true, CurrentPlayer.canDouble()));
+            PlayersHand[CurrentPlayerIndex].HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), true, CurrentPlayer.canDouble()));
             PlayersHand[CurrentPlayerIndex].hand.RemoveAt(1);
             PlayersHand[CurrentPlayerIndex].OverrideCanSplit = true;
             PlayersHand.Insert(CurrentPlayerIndex+1,handToAdd);
@@ -342,7 +343,7 @@ namespace BlackJackTrainner.Model
 
         public List<PlayingCard> Shute { get; set; }
 
-        public List<PlayersHand> PlayersHand { get; set; }
+        public ObservableCollection<PlayersHand> PlayersHand { get; set; }
         
         public List<PlayingCard> DealersHand { get; set; }
 
@@ -359,7 +360,7 @@ namespace BlackJackTrainner.Model
             switch (PlayStrategiesType)
             {
                 case PlayStrategiesTypes.SingleHandBook:
-                    PlayersHand[playerIndexToCalulateFor].HandSuggesstion = SingleHandBook.LookUpSuggestions(PlayersHand[playerIndexToCalulateFor].hand, PlayersHand[playerIndexToCalulateFor].DealersUpCardValue, PlayersHand[playerIndexToCalulateFor].canSplit());
+                    PlayersHand[playerIndexToCalulateFor].HandSuggesstion = SingleHandBook.LookUpSuggestions(PlayersHand[playerIndexToCalulateFor].hand.ToList(), PlayersHand[playerIndexToCalulateFor].DealersUpCardValue, PlayersHand[playerIndexToCalulateFor].canSplit());
                     break;
                 case PlayStrategiesTypes.Random:
                     PlayersHand[playerIndexToCalulateFor].HandSuggesstion = HandResultExtensions.GetRandomSuggestions(PlayersHand[playerIndexToCalulateFor],Random);
