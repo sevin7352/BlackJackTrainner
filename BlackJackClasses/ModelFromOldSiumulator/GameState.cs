@@ -86,7 +86,7 @@ namespace BlackJackTrainner.Model
             for (int i = 0; i < PlayersHand.Count; i++)
             {
 
-                //PlayersHand[i].hand = new List<PlayingCard>() { new PlayingCard(2, Suits.Clubs), new PlayingCard(2, Suits.Diamonds) };
+                PlayersHand[i].hand = new ObservableCollection<PlayingCard>() { new PlayingCard(2, Suits.Clubs), new PlayingCard(2, Suits.Diamonds) };
                 PlayersHand[i].DealersUpCardValue = DealersValue;
                 calculateHandSuggestions(i);
             }
@@ -103,6 +103,9 @@ namespace BlackJackTrainner.Model
 
                 FinishDealersHand();
             }
+
+            //If Dealer Doesn't have blackjack Payout BlackJack.
+            CheckAndPayBlackJack();
         }
 
         private void DealACard(bool Dealer = true, int PlayersHandIndex=-1)
@@ -212,6 +215,24 @@ namespace BlackJackTrainner.Model
             }
         }
 
+        public void CheckAndPayBlackJack()
+        {
+            for (int i = 0; i < PlayersHand.Count; i++)
+            {
+
+                if(PlayersHand[i].CurrentValue == 21)
+                {
+                    PlayersHand[i].HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), CurrentPlayer.canSplit(), CurrentPlayer.canDouble()));
+                    PlayersHand[i].HandResult = HandResultTypes.Win;
+
+                    //TODO change to use settings for blackjack win percent.
+                    PlayersHand[i].MoneyWon = PlayersHand[i].EndingBet * 2;
+                    PlayersHand[i].handOver = true;
+                }
+                
+            }
+        }
+
         public bool CanStay
         {
             get { return !PlayersTurnDone; }
@@ -220,8 +241,9 @@ namespace BlackJackTrainner.Model
         public void stay()
         {
             PlayersHand[CurrentPlayerIndex].HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), CurrentPlayer.canSplit(), CurrentPlayer.canDouble()));
-            PlayersHand[CurrentPlayerIndex].handOver = true;
             PlayersHand[CurrentPlayerIndex].ActionsTaken.Add(ActionTypes.Stay);
+            PlayersHand[CurrentPlayerIndex].handOver = true;
+            CheckPlayersTurnIsOverOrAdvanceToNextHand();
         }
 
         public bool CanHit
@@ -237,6 +259,7 @@ namespace BlackJackTrainner.Model
             if (PlayersHand[CurrentPlayerIndex].CurrentValue > 21)
             {
                 PlayersHand[CurrentPlayerIndex].handOver = true;
+                CheckPlayersTurnIsOverOrAdvanceToNextHand();
             }
             calculateHandSuggestions(CurrentPlayerIndex);
         }
@@ -261,6 +284,7 @@ namespace BlackJackTrainner.Model
             TotalMoney = TotalMoney - PlayersHand[CurrentPlayerIndex].StartingBet;
             PlayersHand[CurrentPlayerIndex].EndingBet += PlayersHand[CurrentPlayerIndex].EndingBet;
             DealACard(false,CurrentPlayerIndex);
+            CheckPlayersTurnIsOverOrAdvanceToNextHand();
         }
 
         public bool CanSplit
@@ -278,13 +302,9 @@ namespace BlackJackTrainner.Model
             handToAdd.ActionsTaken.Add(ActionTypes.Split);
             PlayersHand[CurrentPlayerIndex].ActionsTaken.Add(ActionTypes.Split);
             PlayersHand[CurrentPlayerIndex].HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), true, CurrentPlayer.canDouble()));
-            PlayersHand[CurrentPlayerIndex].hand.RemoveAt(1);
+            PlayersHand[CurrentPlayerIndex].hand.RemoveAt(0);
             PlayersHand[CurrentPlayerIndex].OverrideCanSplit = true;
-            PlayersHand.Insert(CurrentPlayerIndex+1,handToAdd);
-            
-
-
-
+            PlayersHand.Insert(CurrentPlayerIndex+1,handToAdd);          
 
             TotalMoney = TotalMoney - PlayersHand[CurrentPlayerIndex].EndingBet;
             DealACard(false,CurrentPlayerIndex);
@@ -350,6 +370,14 @@ namespace BlackJackTrainner.Model
         public bool PlayersTurnDone
         {
             get { return PlayersHand.All(p => p.handOver); }
+        }
+
+        public void CheckPlayersTurnIsOverOrAdvanceToNextHand()
+        {
+            while(!PlayersTurnDone && CurrentPlayer.handOver && (CurrentPlayerIndex+1) < PlayersHand.Count)
+            {
+                CurrentPlayerIndex++;
+            }
         }
 
         

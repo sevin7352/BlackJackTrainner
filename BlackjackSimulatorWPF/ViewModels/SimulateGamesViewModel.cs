@@ -35,7 +35,7 @@ namespace BlackJackSimulatorWPF.ViewModel
            CurrentBankRoll = StartingBankroll;
            HandResults = new List<SingleHandResult>();
            PlayStrategy = PlayStrategiesTypes.SingleHandAdaptive;
-           NumberOfSeatsToPlay = 5;
+           NumberOfSeatsToPlay = 1;
 
            
            playersCardNumbers = new int[4]{10,3,0,0};
