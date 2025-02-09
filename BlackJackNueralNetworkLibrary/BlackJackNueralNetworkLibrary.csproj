@@ -4,25 +4,19 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Microsoft.ML" Version="4.0.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BlackJackClasses\BlackJackClasses.csproj" />
     <ProjectReference Include="..\PlayingCards\PlayingCards.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Import Include="System.Windows.Forms" />
-    <Import Include="System.Data" />
-    <Import Include="System.Drawing" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="BalckJackRuleSets\" />
+    <Folder Include="NueralNetworks\" />
   </ItemGroup>
 
 </Project>

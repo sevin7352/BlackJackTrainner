@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using BlackJackClasses.Model;
 using BlackJackTrainner.Enums;
 using BlackJackTrainner.Model.HandSuggestionGeneration;
 using Newtonsoft.Json;
@@ -15,9 +16,10 @@ namespace BlackJackTrainner.Model
     public class GameState
     {
 
-        public GameState(PlayStrategiesTypes playStrategiesType = PlayStrategiesTypes.SingleHandBook)
+        public GameState(BlackJackRules rules,PlayStrategiesTypes playStrategiesType = PlayStrategiesTypes.SingleHandBook)
         {
             Random = new Random();
+            Rules = rules;
             Shute = new List<PlayingCard>();
             PlayersHand = new ObservableCollection<PlayersHand>();
             
@@ -29,6 +31,7 @@ namespace BlackJackTrainner.Model
         }
 
         public Random Random { get; set; }
+        public BlackJackRules Rules { get; set; }
 
         public bool InGame { get; set; }
 
@@ -37,7 +40,7 @@ namespace BlackJackTrainner.Model
         public void ShuffleShute()
         {
             PlayedCards = new List<PlayingCard>();
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < Rules.numberOfDecks; i++)
             {
                 Shute.AddRange(DeckHelper.FreshDeck);
             }
@@ -56,6 +59,7 @@ namespace BlackJackTrainner.Model
 
         public void Deal()
         {
+            //TODO add in logic for automatic Shuffler
             if (TotalMoney == 0 || TotalMoney < Bet * NumberOfHandsToPlay)
             {
                 InGame = false;
@@ -86,7 +90,7 @@ namespace BlackJackTrainner.Model
             for (int i = 0; i < PlayersHand.Count; i++)
             {
 
-                PlayersHand[i].hand = new ObservableCollection<PlayingCard>() { new PlayingCard(2, Suits.Clubs), new PlayingCard(2, Suits.Diamonds) };
+                //PlayersHand[i].hand = new ObservableCollection<PlayingCard>() { new PlayingCard(2, Suits.Clubs), new PlayingCard(2, Suits.Diamonds) };
                 PlayersHand[i].DealersUpCardValue = DealersValue;
                 calculateHandSuggestions(i);
             }

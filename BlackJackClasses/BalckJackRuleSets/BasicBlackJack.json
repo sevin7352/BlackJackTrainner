@@ -1,0 +1,11 @@
+{
+	"name": "BasicBlackJack",
+	"payoutForBlackJack": 1.66,
+	"DealerPushOn22": false,
+	"FreeDouble": false,
+	"FreeSplit": false,
+	"HitOnSplitAces": false,
+	"MaxNumberOfSplits": 0,
+	"numberOfDecks": 6,
+	"AutomaticShuffler": false
+}

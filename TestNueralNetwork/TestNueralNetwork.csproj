@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BlackJackClasses\BlackJackClasses.csproj" />
+    <ProjectReference Include="..\BlackJackNueralNetworkLibrary\BlackJackNueralNetworkLibrary.csproj" />
+    <ProjectReference Include="..\PlayingCards\PlayingCards.csproj" />
+  </ItemGroup>
+
+</Project>

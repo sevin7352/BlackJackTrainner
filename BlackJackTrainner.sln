@@ -7,9 +7,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlackJackTrainner", "BlackJ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlayingCards", "PlayingCards\PlayingCards.csproj", "{8ED5F5CC-A9ED-4CD2-BFDF-AF7DDD3BDEC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlackJackClasses", "BlackJackClasses\BlackJackClasses.csproj", "{059B8E8E-7B25-4E30-B4C9-A98A7597AFDA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlackJackClasses", "BlackJackClasses\BlackJackClasses.csproj", "{059B8E8E-7B25-4E30-B4C9-A98A7597AFDA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlackJackSimulatorWPF", "BlackjackSimulatorWPF\BlackJackSimulatorWPF.csproj", "{64DC68C3-9EA3-4BEE-B560-92124F3B7E45}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlackJackSimulatorWPF", "BlackjackSimulatorWPF\BlackJackSimulatorWPF.csproj", "{64DC68C3-9EA3-4BEE-B560-92124F3B7E45}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlackJackNueralNetworkLibrary", "BlackJackNueralNetworkLibrary\BlackJackNueralNetworkLibrary.csproj", "{42DAE954-9C4C-42AA-9CA8-6C7478C8B780}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestNueralNetwork", "TestNueralNetwork\TestNueralNetwork.csproj", "{7B3C5E17-7016-4D3C-8D77-312E0DE64750}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "testingAutoMl", "testingAutoMl\testingAutoMl.csproj", "{B1B7CCD5-6700-4A4C-9094-9A18DB25564C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleBlackJackSimulator", "ConsoleBlackJackSimulator\ConsoleBlackJackSimulator.csproj", "{4E2626A8-51F0-4447-AA06-5D9B55076907}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +41,22 @@ Global
 		{64DC68C3-9EA3-4BEE-B560-92124F3B7E45}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{64DC68C3-9EA3-4BEE-B560-92124F3B7E45}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64DC68C3-9EA3-4BEE-B560-92124F3B7E45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42DAE954-9C4C-42AA-9CA8-6C7478C8B780}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42DAE954-9C4C-42AA-9CA8-6C7478C8B780}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42DAE954-9C4C-42AA-9CA8-6C7478C8B780}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42DAE954-9C4C-42AA-9CA8-6C7478C8B780}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B3C5E17-7016-4D3C-8D77-312E0DE64750}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B3C5E17-7016-4D3C-8D77-312E0DE64750}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B3C5E17-7016-4D3C-8D77-312E0DE64750}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B3C5E17-7016-4D3C-8D77-312E0DE64750}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1B7CCD5-6700-4A4C-9094-9A18DB25564C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1B7CCD5-6700-4A4C-9094-9A18DB25564C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1B7CCD5-6700-4A4C-9094-9A18DB25564C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1B7CCD5-6700-4A4C-9094-9A18DB25564C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E2626A8-51F0-4447-AA06-5D9B55076907}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E2626A8-51F0-4447-AA06-5D9B55076907}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E2626A8-51F0-4447-AA06-5D9B55076907}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E2626A8-51F0-4447-AA06-5D9B55076907}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
