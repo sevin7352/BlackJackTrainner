@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BlackJackClasses.Model;
-using BlackJackTrainner.Enums;
+using BlackJackClasses.Enums;
 using PlayingCards;
 
 namespace BlackJackTrainner.Model

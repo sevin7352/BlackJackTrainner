@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using BlackJackTrainner.Enums;
+using BlackJackClasses.Enums;
 using BlackJackTrainner.Model;
 using BlackJackTrainner.Model.HandSuggestionGeneration;
 using CommunityToolkit.Mvvm.Input;
@@ -15,6 +15,7 @@ using PlayingCards;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Threading;
 using BlackJackClasses.Model;
+using BlackJackClasses.Helpers;
 
 namespace BlackJackSimulatorWPF.ViewModel
 {
@@ -122,7 +123,7 @@ namespace BlackJackSimulatorWPF.ViewModel
                 ShutesPlayed = 0;
                 CurrentBankRoll = StartingBankroll;
                 TotalHandsPlayed = 0;
-                GameState game = new GameState()
+                GameState game = new GameState(BlackJackRuleSetHelper.GetRuleSets().FirstOrDefault())
                 {
                     TotalMoney = CurrentBankRoll,
                     Bet = BetBase,
@@ -149,7 +150,7 @@ namespace BlackJackSimulatorWPF.ViewModel
                         var playerHand = game.CurrentPlayer;
                         while (!playerHand.handOver)
                         {
-                            switch (playerHand.HandSuggesstion.SuggestedAction(playerHand.canSplit(), playerHand.canDouble(), playerHand.canHit()))
+                            switch (playerHand.HandSuggesstion.SuggestedAction(playerHand.canSplit, playerHand.canDouble, playerHand.canHit()))
                             {
 
                                 case ActionTypes.Stay:
@@ -176,7 +177,7 @@ namespace BlackJackSimulatorWPF.ViewModel
                     {
                         foreach (var player in game.PlayersHand)
                         {
-                            ResultsToAdd.AddRange(HandResultExtensions.GetSingleHandResults(player));
+                            //ResultsToAdd.AddRange(HandResultExtensions.GetSingleHandResults(player));
                         }
 
                         if (game.PlayersTurnDone)
@@ -333,7 +334,7 @@ namespace BlackJackSimulatorWPF.ViewModel
                     HandSuggestion = HandResultExtensions.GetRandomSuggestions(playersHand, Random);
                     break;
                 case PlayStrategiesTypes.SingleHandBook:
-                    HandSuggestion = SingleHandBook.LookUpSuggestions(playersHand.hand.ToList(), playersHand.DealersUpCardValue, playersHand.canSplit());
+                    HandSuggestion = SingleHandBook.LookUpSuggestions(playersHand.hand.ToList(), playersHand.DealersUpCardValue, playersHand.canSplit);
                     break;
 
                 case PlayStrategiesTypes.SingleHandAdaptive:

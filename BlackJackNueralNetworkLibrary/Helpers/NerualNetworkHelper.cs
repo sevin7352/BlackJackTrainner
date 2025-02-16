@@ -1,6 +1,6 @@
 ﻿using BlackJackNueralNetworkLibrary.Model;
 using BlackJackTrainner.Model;
-using BlackJackTrainner.Enums;
+using BlackJackClasses.Enums;
 using BlackJackTrainner.Model.HandSuggestionGeneration;
 using System;
 using System.Collections.Generic;

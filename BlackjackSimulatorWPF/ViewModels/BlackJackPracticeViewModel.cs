@@ -14,6 +14,7 @@ using System.ComponentModel;
 using System.Windows.Data;
 using CommunityToolkit.Mvvm.Messaging;
 using BlackJackClasses.Model;
+using BlackJackClasses.Helpers;
 
 namespace BlackJackSimulatorWPF.ViewModel
 {
@@ -22,7 +23,7 @@ namespace BlackJackSimulatorWPF.ViewModel
         public BlackJackPracticeViewModel()
         {
             
-            GameState = new GameState()
+            GameState = new GameState(BlackJackRuleSetHelper.GetRuleSets().FirstOrDefault())
             {
                 NumberOfHandsToPlay = 1,
             };

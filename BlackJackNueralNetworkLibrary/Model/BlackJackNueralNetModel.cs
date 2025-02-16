@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using BlackJackTrainner.Enums;
+using BlackJackClasses.Enums;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;

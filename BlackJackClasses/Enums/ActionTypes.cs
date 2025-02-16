@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BlackJackTrainner.Enums
+namespace BlackJackClasses.Enums
 {
     public enum ActionTypes
     {

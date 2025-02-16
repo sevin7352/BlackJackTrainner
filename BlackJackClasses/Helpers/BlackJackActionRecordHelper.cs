@@ -1,4 +1,11 @@
-﻿using BlackJackClasses.Model;
+﻿using BlackJackClasses.Enums;
+using BlackJackClasses.Model;
+using BlackJackTrainner.Model;
+using DnsClient.Protocol;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using MongoDB.Driver.Core.Configuration;
+using PlayingCards;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,78 +17,101 @@ namespace BlackJackClasses.Helpers
 {
     public static class BlackJackActionRecordHelper
     {
-
-        private static string FolderPath
-        {
-            get
-            {
-                string current = AppDomain.CurrentDomain.BaseDirectory;
-                string dataBaseRootFolder = current.Substring(0,current.IndexOf("BlackJackTrainner"));
-
-               
-                return Path.Combine(dataBaseRootFolder,"BlackJackTrainner\\BlackJackClasses", "GameRecords");
-            }
-        }
+        private const string ConnectionString = "mongodb://localhost:27017/";
+        private const string mongoBatabaseName = "BlackJackDataBase"; 
+        
 
         static BlackJackActionRecordHelper()
         {
-            // Ensure the directory exists
-            if (!Directory.Exists(FolderPath))
-            {
-                Directory.CreateDirectory(FolderPath);
-            }
-        }
-        public static async Task SaveGameRecordsAsync(List<BlackJackActionRecord> records,string RulesName)
-        {
-            var listDistinct = records.Select(p=>p.GameId.ToString()).Distinct();
-            foreach (var gameId in listDistinct)
-            {
-                string filePath = Path.Combine(FolderPath, RulesName);
-                filePath = Path.Combine(filePath, $"BlackJackGame_{gameId}.json");
-
-                var options = new JsonSerializerOptions { WriteIndented = true };
-
-                string json = JsonSerializer.Serialize(records, options);
-                await File.WriteAllTextAsync(filePath, json);
-            }
-        }
-
-        public static async Task<List<BlackJackActionRecord>> LoadGameRecordsAsync(string RulesName,int gameId)
-        {
-
-            string filePath = Path.Combine(FolderPath, RulesName);
-
-            if (!Directory.Exists(filePath))
-                return new List<BlackJackActionRecord>();
             
-            filePath = Path.Combine(filePath, $"BlackJackGame_{gameId}.json");
-
-            if (!File.Exists(filePath))
-                return new List<BlackJackActionRecord>();
-
-            string json = await File.ReadAllTextAsync(filePath);
-            return JsonSerializer.Deserialize<List<BlackJackActionRecord>>(json) ?? new List<BlackJackActionRecord>();
         }
 
-        public static async Task<List<BlackJackActionRecord>> LoadAllRecordsAsync(string RulesName)
+        public static void SaveGameRecords(List<BlackJackActionRecord> records, string RulesName)
         {
+            if(records == null || records.Count == 0) return;
+
+            var mongoClient = new MongoClient(ConnectionString);
+            var collection = mongoClient.GetDatabase(mongoBatabaseName).GetCollection<BlackJackActionRecord>(RulesName);
+
+            foreach (var record in records) {
+                
+                //Console.WriteLine($"Before Insert - Id: {record.Id}");
+                if(record.Id != null)
+                {
+                    record.Id = null;
+                    //Console.WriteLine($"Before After Reset - Id: {record.Id}");
+                }
+                //Have to insert one a time.
+                collection.InsertOne(record);
+                //Thread.Sleep(1);
+            }
+        }
+
+        public static List<BlackJackActionRecord> LoadAllRecords(string RulesName)
+        {
+            var mongoClient = new MongoClient(ConnectionString);
+            var collection = mongoClient.GetDatabase(mongoBatabaseName).GetCollection<BlackJackActionRecord>(RulesName);
+
+
+
+
+            return collection.AsQueryable().ToList();
+        }
+
+        public static List<BlackJackActionRecord> GetRelevantRecords(string RulesName,PlayersHand playerHand,int deckCount) {
+
+
+            var mongoClient = new MongoClient(ConnectionString);
+            var collection = mongoClient.GetDatabase(mongoBatabaseName).GetCollection<BlackJackActionRecord>(RulesName);
+
+            var results =  collection.AsQueryable().Where(p=> p.DeckCount == deckCount &&  p.PlayerTotal == playerHand.CurrentValue && p.DealerUpCard == playerHand.DealersUpCardValue && p.CanDouble == playerHand.canDouble && p.CanSplit == playerHand.canSplit).ToList();
+
+            return results;
+        }
+
+        public static HandSuggestions GetHandSuggestions(string RulesName, PlayersHand playersHand,int deckCount)
+        {
+            var records = GetRelevantRecords(RulesName, playersHand, deckCount);
+            Console.WriteLine("Relevant Records:" + records.Count +" Dealer Card:" + playersHand.DealersUpCardValue +" Players Hand:" + GameStateExtensions.calculateValue(playersHand.hand.ToList()).ToString());
             
-            string filePath = Path.Combine(FolderPath, RulesName);
+            return ProcessRecordsToSuggestions(records);
+        }
 
-            if (!Directory.Exists(filePath))
-                return new List<BlackJackActionRecord>();
-
-            var files = Directory.GetFiles(filePath);
-            List<BlackJackActionRecord> RecordsToReturn = new List<BlackJackActionRecord>();
-            foreach (var file in files)
+        private static HandSuggestions ProcessRecordsToSuggestions(List<BlackJackActionRecord> records)
+        {
+            if(records.Count == 0)
             {
-                string json = await File.ReadAllTextAsync(file);
-                RecordsToReturn.AddRange(JsonSerializer.Deserialize<List<BlackJackActionRecord>>(json));
+                return null;
             }
 
-            return RecordsToReturn;
-        }
+            var handSuggestions = new HandSuggestions();
+            if (!records.Any()) return handSuggestions;
 
+            // Group by action and calculate win probability
+            var groupedActions = records.GroupBy(r => r.Action)
+                .ToDictionary(g => g.Key, g => new
+                {
+                    Total = g.Count(),
+                    Wins = g.Count(r => r.GameOutcome == HandResultTypes.Win || r.GameOutcome == HandResultTypes.BlackJack)
+                });
+
+            int totalActions = records.Count;
+
+            // Assign probabilities
+            if (groupedActions.TryGetValue(ActionTypes.Stay, out var stayStats))
+                handSuggestions.Stay = (double)stayStats.Wins / stayStats.Total;
+
+            if (groupedActions.TryGetValue(ActionTypes.Hit, out var hitStats))
+                handSuggestions.Hit = (double)hitStats.Wins / hitStats.Total;
+
+            if (groupedActions.TryGetValue(ActionTypes.Split, out var splitStats))
+                handSuggestions.Split = (double)splitStats.Wins / splitStats.Total;
+
+            if (groupedActions.TryGetValue(ActionTypes.Double, out var doubleStats))
+                handSuggestions.DoubleDown = (double)doubleStats.Wins / doubleStats.Total;
+
+            return handSuggestions;
+        }
 
 
 

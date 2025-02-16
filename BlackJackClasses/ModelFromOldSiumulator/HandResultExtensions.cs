@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BlackJackClasses.Model;
-using BlackJackTrainner.Enums;
+using BlackJackClasses.Enums;
 using PlayingCards;
 
 namespace BlackJackTrainner.Model
@@ -129,11 +129,11 @@ namespace BlackJackTrainner.Model
             {
                 handSuggesstion.Hit = Random.Next(0, 100);
             }
-            if (playersHand.canDouble())
+            if (playersHand.canDouble)
             {
                 handSuggesstion.DoubleDown = Random.Next(0, 100);
             }
-            if (playersHand.canSplit())
+            if (playersHand.canSplit)
             {
                 handSuggesstion.Split = Random.Next(0, 100);
             }
@@ -147,7 +147,7 @@ namespace BlackJackTrainner.Model
              if (DeckHelper.DeckCardNumber(playersHand.hand.ToList()).IsHandSpecial())
              {
 
-                 if (playersHand.canSplit())
+                 if (playersHand.canSplit)
                  {
                      var splitresults = handResults.Where(p => playersHand.hand[0].Value == p.CurrentHand[0]&& p.CurrentHand.Length==1 && p.DealersUpCardValue == playersHand.DealersUpCardValue).ToList();
                      var nonSplitresults = handResults.Where(p => DeckHelper.ContainsCardsValues(playersHand.hand.ToList(), p.CurrentHand) && p.DealersUpCardValue == playersHand.DealersUpCardValue).ToList();
@@ -291,61 +291,7 @@ namespace BlackJackTrainner.Model
             
         }
 
-        public static List<SingleHandResult> GetSingleHandResults(PlayersHand playersHand)
-        {
-            var ToReturn = new List<SingleHandResult>();
-
-            int actionIndex = 0;
-            if (playersHand.CurrentValue == 21)
-            {
-                string flag = string.Empty;
-            }
-            foreach (var action in playersHand.ActionsTaken)
-            {
-                int cardsTotake = 2 + actionIndex;
-                if (action == ActionTypes.Split)
-                {
-                    if (playersHand.HandResults.Count > 0)
-                    {
-                        //playersHand.HandResults[actionIndex].CurrentHand = new int[]{ playersHand.HandResults[actionIndex].CurrentHand[0] };
-                    }
-                }
-
-                var toAdd = playersHand.HandResults[actionIndex];
-                var actionresult = toAdd.ActionResults.FirstOrDefault(p => p.Type == action);
-                if (actionresult != null)
-                {
-                    actionresult.NumberOfHands++;
-                    switch (playersHand.HandResult)
-                    {
-                        case HandResultTypes.Loose:
-                            actionresult.NumberOfHandsLost++;
-                            break;
-                        case HandResultTypes.Push:
-                            actionresult.NumberOfHandspushed++;
-                            break;
-                        case HandResultTypes.Win:
-                            actionresult.NumberOfHandsWon++;
-                            break;
-                    }
-
-                    actionresult.Return =
-                        (actionresult.Return * (actionresult.NumberOfHands - 1)) / actionresult.NumberOfHands +
-                        playersHand.MoneyReturn / actionresult.NumberOfHands;
-
-                }
-                else
-                {
-                    string tempstring = null;
-                }
-
-                toAdd.DealersUpCardValue = playersHand.DealersUpCardValue;
-
-                ToReturn.Add(toAdd);
-                actionIndex++;
-            }
-
-            return ToReturn;
-        }
+     
+        
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using BlackJackTrainner.Enums;
+using BlackJackClasses.Enums;
 using PlayingCards;
 
 namespace BlackJackClasses.Model
@@ -22,6 +22,11 @@ namespace BlackJackClasses.Model
 
             if (cards.Count(p => p.isAce) > 0)
             {
+                if(cards.Count(p => p.isAce) > 1)
+                {
+                    int i = 0;
+                }
+
                 if (sum + 10 <= 21)
                 {
                     return sum + 10;

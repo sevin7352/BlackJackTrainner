@@ -69,13 +69,13 @@ namespace PlayingCards
 
         public static int[] DeckCardNumber(List<PlayingCard> deck)
         {
-            List<int> toReturn = new List<int>();
-            foreach (var card in deck.OrderBy(p=>p.CardNumber))
-            {
-                toReturn.Add(card.CardNumber);
-            }
 
-            return toReturn.ToArray();
+            return deck.OrderBy(p=>p.CardNumber).Select(x=>x.CardNumber).ToArray();
+        }
+
+        public static int[] DeckCardValues(List<PlayingCard> deck)
+        {
+            return deck.Select(p=>p.Value).ToArray();
         }
 
         public static bool ContainsCardsValues(List<PlayingCard> deck, int[] cardNumbers)

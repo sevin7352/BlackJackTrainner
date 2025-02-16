@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using BlackJackClasses.Helpers;
-using BlackJackTrainner.Enums;
+using BlackJackClasses.Enums;
 using BlackJackTrainner.Model;
 using BlackJackTrainner.Model.HandSuggestionGeneration;
 using Newtonsoft.Json;
@@ -17,7 +17,7 @@ namespace BlackJackClasses.Model
     public class GameState
     {
 
-        public GameState(BlackJackRules rules, PlayStrategiesTypes playStrategiesType = PlayStrategiesTypes.SingleHandBook)
+        public GameState(BlackJackRules rules, PlayStrategiesTypes playStrategiesType = PlayStrategiesTypes.SingleHandBook,int numberOfHandsToPlay = 1)
         {
             Random = new Random();
             GameId = DateTimeOffset.Now.UtcTicks;
@@ -27,9 +27,11 @@ namespace BlackJackClasses.Model
             PlayersHand = new ObservableCollection<PlayersHand>();
             PlayedCards = new List<PlayingCard>();
             DealersHand = new List<PlayingCard>();
-            TotalMoney = 1000;
+            ActionRecords = new List<BlackJackActionRecord> { };
+            TotalMoney = 100000;
             Bet = 10;
             PlayStrategiesType = playStrategiesType;
+            NumberOfHandsToPlay = numberOfHandsToPlay;
         }
 
         public long GameId;
@@ -41,6 +43,7 @@ namespace BlackJackClasses.Model
 
         public int NumberOfHandsToPlay { get; set; }
 
+        public bool ShuffleShuteAfterHand { get; set; }
         public void ShuffleShute()
         {
             PlayedCards = new List<PlayingCard>();
@@ -52,8 +55,10 @@ namespace BlackJackClasses.Model
             Shute = DeckHelper.ShuffleDeck(Shute, 25, Random);
             ShutesPlayed++;
             CardCount = 0;
+
             //Wait for Actions To save
-            BlackJackActionRecordHelper.SaveGameRecordsAsync(ActionRecords, Rules.name).GetAwaiter().GetResult();
+            BlackJackActionRecordHelper.SaveGameRecords(ActionRecords, Rules.name);
+            //reset Actions for next game.
             GameId = DateTimeOffset.Now.UtcTicks;
             ActionRecords.Clear();
         }
@@ -68,6 +73,12 @@ namespace BlackJackClasses.Model
 
         public void Deal()
         {
+            if(ShuffleShuteAfterHand)
+            {
+                ShuffleShuteAfterHand = false;
+                ShuffleShute();
+            }
+
             //TODO add in logic for automatic Shuffler
             if (TotalMoney == 0 || TotalMoney < Bet * NumberOfHandsToPlay)
             {
@@ -129,7 +140,7 @@ namespace BlackJackClasses.Model
                 //TODO, Implement random number of cards left in shute. <-look up estimates.
                 if (Shute.Count < 52)
                 {
-                    ShuffleShute();
+                    ShuffleShuteAfterHand = true;
                 }
 
                 if (Dealer)
@@ -151,6 +162,18 @@ namespace BlackJackClasses.Model
 
                 }
                 var cardPlayed = Shute[0];
+                if (cardPlayed.Value < 6)
+                {
+                    CardCount++;
+                }
+                else if (cardPlayed.Value >= 7 && cardPlayed.Value <= 9)
+                {
+
+                }
+                else if(cardPlayed.Value >= 10)
+                {
+                    CardCount--;
+                }
                 PlayedCards.Add(Shute[0]);
                 Shute.RemoveAt(0);
                 return cardPlayed;
@@ -189,31 +212,72 @@ namespace BlackJackClasses.Model
                 {
                     playersHand.HandResult = HandResultTypes.Loose;
                     playersHand.MoneyWon = 0;
-                }
-                else
-                {
-                    if (DealersValue == 21 && DealersHand.Count == 2)
+                    foreach(var actionRecord in playersHand.ActionRecords.Where(p=>p.GameOutcome == HandResultTypes.unkown))
                     {
-                        playersHand.HandResult = HandResultTypes.Loose;
-                        playersHand.MoneyWon = 0;
+                        actionRecord.FinalHandValue = playersHand.CurrentValue;
+                        actionRecord.GameOutcome = HandResultTypes.Loose;
+                    }
+                }
+                else //Player did not bust
+                {
+                    
+                    if (DealersValue == 21 && DealersHand.Count == 2)// Dealer BlackJack
+                    {
+                        if(playersHand.CurrentValue == 21 && playersHand.hand.Count() ==2)
+                        {
+                            foreach (var actionRecord in playersHand.ActionRecords.Where(p => p.GameOutcome == HandResultTypes.unkown))
+                            {
+                                actionRecord.FinalHandValue = playersHand.CurrentValue;
+                                actionRecord.GameOutcome = HandResultTypes.Push;
+                            }
+                            playersHand.HandResult = HandResultTypes.Push;
+                            playersHand.MoneyWon = playersHand.EndingBet;
+
+                        }
+                        else // Dealer BlackJack Player does not have Black Jack.
+                        {
+                            foreach (var actionRecord in playersHand.ActionRecords.Where(p => p.GameOutcome == HandResultTypes.unkown))
+                            {
+                                actionRecord.FinalHandValue = playersHand.CurrentValue;
+                                actionRecord.GameOutcome = HandResultTypes.Loose;
+                            }
+                            playersHand.HandResult = HandResultTypes.Loose;
+                            playersHand.MoneyWon = 0;
+                        }
+                        
                     }
                     else if (DealersValue == playersHand.CurrentValue)
                     {
+                        foreach (var actionRecord in playersHand.ActionRecords.Where(p => p.GameOutcome == HandResultTypes.unkown))
+                        {
+                            actionRecord.FinalHandValue = playersHand.CurrentValue;
+                            actionRecord.GameOutcome = HandResultTypes.Push;
+                        }
                         playersHand.HandResult = HandResultTypes.Push;
                         playersHand.MoneyWon = playersHand.EndingBet;
                         TotalMoney = TotalMoney + playersHand.EndingBet;
                     }
-                    else if (playersHand.CurrentValue > DealersValue || DealersValue > 21)
+                    else if (playersHand.CurrentValue > DealersValue || DealersValue > 21) //player beat dealer or dealer bust
                     {
                         //BlackJack Handled Already
-                        
+
                         //Pay out if Hand Wins
+                        foreach (var actionRecord in playersHand.ActionRecords.Where(p => p.GameOutcome == HandResultTypes.unkown))
+                        {
+                            actionRecord.FinalHandValue = playersHand.CurrentValue;
+                            actionRecord.GameOutcome = HandResultTypes.Win;
+                        }
                         playersHand.HandResult = HandResultTypes.Win;
                         playersHand.MoneyWon = playersHand.EndingBet * 2;
                         TotalMoney = TotalMoney + playersHand.EndingBet * 2;
                     }
                     else if (DealersValue > playersHand.CurrentValue)
                     {
+                        foreach (var actionRecord in playersHand.ActionRecords.Where(p => p.GameOutcome == HandResultTypes.unkown))
+                        {
+                            actionRecord.FinalHandValue = playersHand.CurrentValue;
+                            actionRecord.GameOutcome = HandResultTypes.Loose;
+                        }
                         playersHand.HandResult = HandResultTypes.Loose;
                         playersHand.MoneyWon = 0;
                     }
@@ -249,7 +313,7 @@ namespace BlackJackClasses.Model
                     
                     PlayersHand[i].HandResult = HandResultTypes.BlackJack;
                     PlayersHand[i].MoneyWon = PlayersHand[i].EndingBet * Rules.payoutForBlackJack;
-                    PlayersHand[i].ActionRecords.Add(new BlackJackActionRecord(GameId, HandsPlayed+i, 0, CardCount, false, false, DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), DealersValue) { GameOutcome = HandResultTypes.BlackJack,Action = ActionTypes.None,FinalHandValue = 21, });
+                    PlayersHand[i].ActionRecords.Add(new BlackJackActionRecord(GameId, HandsPlayed+i, 0, CardCount, false, false, DeckHelper.DeckCardValues(CurrentPlayer.hand.ToList()), DealersValue) { GameOutcome = HandResultTypes.BlackJack,Action = ActionTypes.None,FinalHandValue = 21, });
                     PlayersHand[i].handOver = true;
                 }
 
@@ -264,7 +328,7 @@ namespace BlackJackClasses.Model
         public void stay()
         {
             PlayersHand[CurrentPlayerIndex].ActionRecords.Add(new BlackJackActionRecord(GameId, HandsPlayed+CurrentPlayerIndex, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, CardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble, 
-                DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), DealersValue) { Action = ActionTypes.Stay });
+                DeckHelper.DeckCardValues(CurrentPlayer.hand.ToList()), DealersValue) { Action = ActionTypes.Stay });
 
             PlayersHand[CurrentPlayerIndex].handOver = true;
             CheckPlayersTurnIsOverOrAdvanceToNextHand();
@@ -278,7 +342,7 @@ namespace BlackJackClasses.Model
         public void Hit()
         {
             var ActionToAdd = new BlackJackActionRecord(GameId, HandsPlayed + CurrentPlayerIndex, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, CardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble,
-                DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), DealersValue)
+                DeckHelper.DeckCardValues(CurrentPlayer.hand.ToList()), DealersValue)
             { Action = ActionTypes.Hit };
             
 
@@ -320,7 +384,7 @@ namespace BlackJackClasses.Model
         public void DoubleDown()
         {
             var ActionToAdd = new BlackJackActionRecord(GameId, HandsPlayed + CurrentPlayerIndex, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, CardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble,
-                DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), DealersValue)
+                DeckHelper.DeckCardValues(CurrentPlayer.hand.ToList()), DealersValue)
             { Action = ActionTypes.Double };
 
 
@@ -353,12 +417,12 @@ namespace BlackJackClasses.Model
             PlayersHand handToAdd = JsonConvert.DeserializeObject<PlayersHand>(serializedobject);
 
             var ActionToAdd1 = new BlackJackActionRecord(GameId, HandsPlayed + CurrentPlayerIndex, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, CardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble,
-                DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), DealersValue)
+                DeckHelper.DeckCardValues(CurrentPlayer.hand.ToList()), DealersValue)
             { Action = ActionTypes.Split };
 
             //TODO, Will this Break when inserting a new Hand? Custom Insert To Update all other actions?
             var ActionToAdd2 = new BlackJackActionRecord(GameId, HandsPlayed + CurrentPlayerIndex + 1, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, CardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble,
-                DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), DealersValue)
+                DeckHelper.DeckCardValues(CurrentPlayer.hand.ToList()), DealersValue)
             { Action = ActionTypes.Split };
 
 
@@ -371,7 +435,7 @@ namespace BlackJackClasses.Model
             PlayersHand[CurrentPlayerIndex].hand.RemoveAt(0);
             
             //Update Action Hand Ids for other hands if there are any.
-            for (int i = CurrentPlayerIndex + 1; i <= PlayersHand.Count; i++) {
+            for (int i = CurrentPlayerIndex + 1; i < PlayersHand.Count; i++) {
                 foreach (var action in PlayersHand[i].ActionRecords) {
                     action.HandId++;
                 }
@@ -383,9 +447,9 @@ namespace BlackJackClasses.Model
             
 
             var card1 = DealACard(false, CurrentPlayerIndex);
-            ActionToAdd1.CardDrawn = card1.CardNumber;
+            ActionToAdd1.CardDrawn = card1.Value;
             var card2 = DealACard(false, CurrentPlayerIndex + 1);
-            ActionToAdd2.CardDrawn = card2.CardNumber;
+            ActionToAdd2.CardDrawn = card2.Value;
 
             PlayersHand[CurrentPlayerIndex].ActionRecords.Add(ActionToAdd1);
             PlayersHand[CurrentPlayerIndex+1].ActionRecords.Add(ActionToAdd2);
@@ -430,7 +494,7 @@ namespace BlackJackClasses.Model
             }
         }
 
-        public List<SingleHandResult> HandResults { get; set; }
+        
         public PlayStrategiesTypes PlayStrategiesType { get; set; }
         public int HandsPlayed { get; set; }
         public int ShutesPlayed { get; set; }
@@ -467,13 +531,23 @@ namespace BlackJackClasses.Model
             switch (PlayStrategiesType)
             {
                 case PlayStrategiesTypes.SingleHandBook:
-                    PlayersHand[playerIndexToCalulateFor].HandSuggesstion = SingleHandBook.LookUpSuggestions(PlayersHand[playerIndexToCalulateFor].hand.ToList(), PlayersHand[playerIndexToCalulateFor].DealersUpCardValue, PlayersHand[playerIndexToCalulateFor].canSplit());
+                    PlayersHand[playerIndexToCalulateFor].HandSuggesstion = SingleHandBook.LookUpSuggestions(PlayersHand[playerIndexToCalulateFor].hand.ToList(), PlayersHand[playerIndexToCalulateFor].DealersUpCardValue, PlayersHand[playerIndexToCalulateFor].canSplit);
                     break;
                 case PlayStrategiesTypes.Random:
                     PlayersHand[playerIndexToCalulateFor].HandSuggesstion = HandResultExtensions.GetRandomSuggestions(PlayersHand[playerIndexToCalulateFor], Random);
                     break;
                 case PlayStrategiesTypes.SingleHandAdaptive:
-                    HandResults.GetSingleHandSuggestions(PlayersHand[playerIndexToCalulateFor], Random);
+                    var playersHand = PlayersHand[playerIndexToCalulateFor];
+                    var suggestion = BlackJackActionRecordHelper.GetHandSuggestions(Rules.name, playersHand, CardCount);
+                    if (suggestion != null) {
+                        playersHand.HandSuggesstion = suggestion;
+                    }
+                    else
+                    {
+                        Console.WriteLine("No Relevant Records-Use Random");
+                        playersHand.HandSuggesstion = HandResultExtensions.GetRandomSuggestions(PlayersHand[playerIndexToCalulateFor], Random);
+
+                    }
 
                     break;
 
