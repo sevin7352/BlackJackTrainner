@@ -309,7 +309,7 @@ namespace BlackJackClasses.Model
         {
             get
             {
-                if (!PlayersTurnDone && PlayersHand[CurrentPlayerIndex].canDouble() && TotalMoney >= Bet)
+                if (!PlayersTurnDone && PlayersHand[CurrentPlayerIndex].canDouble && TotalMoney >= Bet)
                 {
                     return true;
                 }
@@ -319,38 +319,76 @@ namespace BlackJackClasses.Model
 
         public void DoubleDown()
         {
-            PlayersHand[CurrentPlayerIndex].HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), CurrentPlayer.canSplit(), CurrentPlayer.canDouble()));
-            PlayersHand[CurrentPlayerIndex].ActionsTaken.Add(ActionTypes.Double);
+            var ActionToAdd = new BlackJackActionRecord(GameId, HandsPlayed + CurrentPlayerIndex, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, CardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble,
+                DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), DealersValue)
+            { Action = ActionTypes.Double };
+
+
             PlayersHand[CurrentPlayerIndex].handOver = true;
             TotalMoney = TotalMoney - PlayersHand[CurrentPlayerIndex].StartingBet;
             PlayersHand[CurrentPlayerIndex].EndingBet += PlayersHand[CurrentPlayerIndex].EndingBet;
-            DealACard(false, CurrentPlayerIndex);
+            
+            var cardDelt = DealACard(false, CurrentPlayerIndex);
+            //ToDo Compare cardDelt with card added to players hand.
+            ActionToAdd.CardDrawn = cardDelt.Value;
+            if (PlayersHand[CurrentPlayerIndex].CurrentValue > 21)
+            {               
+                ActionToAdd.GameOutcome = HandResultTypes.Loose;
+                ActionToAdd.ResultedInBust = true;
+                ActionToAdd.FinalHandValue = PlayersHand[CurrentPlayerIndex].CurrentValue;
+            }
+            PlayersHand[CurrentPlayerIndex].ActionRecords.Add(ActionToAdd);
             CheckPlayersTurnIsOverOrAdvanceToNextHand();
         }
 
         public bool CanSplit
         {
-            get { return PlayersHand[CurrentPlayerIndex].canSplit(); }
+            get { return PlayersHand[CurrentPlayerIndex].canSplit; }
         }
 
         public void Split()
         {
+
             var serializedobject = JsonConvert.SerializeObject(PlayersHand[CurrentPlayerIndex]);
             PlayersHand handToAdd = JsonConvert.DeserializeObject<PlayersHand>(serializedobject);
+
+            var ActionToAdd1 = new BlackJackActionRecord(GameId, HandsPlayed + CurrentPlayerIndex, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, CardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble,
+                DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), DealersValue)
+            { Action = ActionTypes.Split };
+
+            //TODO, Will this Break when inserting a new Hand? Custom Insert To Update all other actions?
+            var ActionToAdd2 = new BlackJackActionRecord(GameId, HandsPlayed + CurrentPlayerIndex + 1, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, CardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble,
+                DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), DealersValue)
+            { Action = ActionTypes.Split };
+
+
             handToAdd.hand.RemoveAt(1);
-            handToAdd.HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), true, CurrentPlayer.canDouble()));
-            handToAdd.OverrideCanSplit = true;
-            handToAdd.ActionsTaken.Add(ActionTypes.Split);
-            PlayersHand[CurrentPlayerIndex].ActionsTaken.Add(ActionTypes.Split);
-            PlayersHand[CurrentPlayerIndex].HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), true, CurrentPlayer.canDouble()));
+
+            //Not Sure Why this was overridden
+            //handToAdd.OverrideCanSplit = true;
+            //PlayersHand[CurrentPlayerIndex].OverrideCanSplit = true;
+
             PlayersHand[CurrentPlayerIndex].hand.RemoveAt(0);
-            PlayersHand[CurrentPlayerIndex].OverrideCanSplit = true;
+            
+            //Update Action Hand Ids for other hands if there are any.
+            for (int i = CurrentPlayerIndex + 1; i <= PlayersHand.Count; i++) {
+                foreach (var action in PlayersHand[i].ActionRecords) {
+                    action.HandId++;
+                }
+            }
             PlayersHand.Insert(CurrentPlayerIndex + 1, handToAdd);
 
             TotalMoney = TotalMoney - PlayersHand[CurrentPlayerIndex].EndingBet;
-            DealACard(false, CurrentPlayerIndex);
-            DealACard(false, CurrentPlayerIndex + 1);
 
+            
+
+            var card1 = DealACard(false, CurrentPlayerIndex);
+            ActionToAdd1.CardDrawn = card1.CardNumber;
+            var card2 = DealACard(false, CurrentPlayerIndex + 1);
+            ActionToAdd2.CardDrawn = card2.CardNumber;
+
+            PlayersHand[CurrentPlayerIndex].ActionRecords.Add(ActionToAdd1);
+            PlayersHand[CurrentPlayerIndex+1].ActionRecords.Add(ActionToAdd2);
 
             calculateHandSuggestions(CurrentPlayerIndex);
 
