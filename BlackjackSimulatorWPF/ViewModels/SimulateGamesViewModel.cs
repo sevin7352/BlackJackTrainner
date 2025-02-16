@@ -14,10 +14,11 @@ using Newtonsoft.Json;
 using PlayingCards;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Threading;
+using BlackJackClasses.Model;
 
 namespace BlackJackSimulatorWPF.ViewModel
 {
-   public class SimulateGamesViewModel :ObservableObject
+    public class SimulateGamesViewModel :ObservableObject
     {
         public SimulateGamesViewModel()
         {

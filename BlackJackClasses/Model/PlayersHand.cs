@@ -5,10 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BlackJackTrainner.Enums;
+using BlackJackTrainner.Model;
 using BlackJackTrainner.Model.HandSuggestionGeneration;
 using PlayingCards;
 
-namespace BlackJackTrainner.Model
+namespace BlackJackClasses.Model
 {
     public class PlayersHand
     {
@@ -17,17 +18,14 @@ namespace BlackJackTrainner.Model
         public PlayersHand(int startingBet)
         {
             hand = new ObservableCollection<PlayingCard>();
-            ActionsTaken = new List<ActionTypes>();
-            HandResults = new List<SingleHandResult>();
+            ActionRecords = new List<BlackJackActionRecord>();
             HandResult = HandResultTypes.unkown;
             StartingBet = startingBet;
             EndingBet = startingBet;
         }
 
         public ObservableCollection<PlayingCard> hand { get; set; }
-        public List<ActionTypes> ActionsTaken { get; set; }
-
-        public List<SingleHandResult> HandResults { get; set; }
+        public List<BlackJackActionRecord> ActionRecords { get; set; }
         public List<int> CardCountAtAction { get; set; }
         public int StartingBet { get; set; }
         public int EndingBet { get; set; }
@@ -43,24 +41,29 @@ namespace BlackJackTrainner.Model
 
         public HandResultTypes HandResult { get; set; }
 
-        public bool canDouble()
+        public bool canDouble
         {
-            return hand.Count == 2 && CurrentValue < 21 && !handOver;
+            get
+            {
+                return hand.Count == 2 && CurrentValue < 21 && !handOver;
+            }
         }
 
         public bool OverrideCanSplit { get; set; }
-        public bool canSplit()
-        {
-
-            if (OverrideCanSplit)
+        public bool canSplit { get
             {
-                return false;
-            }
-            else
-            {
-                return hand.Count == 2 && hand[0].CardNumber == hand[1].CardNumber && !handOver;
+                //ToDo Allow Mulitple Splits.
+                if (OverrideCanSplit)
+                {
+                    return false;
+                }
+                else
+                {
+                    return hand.Count == 2 && hand[0].CardNumber == hand[1].CardNumber && !handOver;
+                }
             }
         }
+        
 
         public bool canHit()
         {

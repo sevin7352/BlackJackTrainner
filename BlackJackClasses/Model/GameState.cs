@@ -5,24 +5,26 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using BlackJackClasses.Model;
+using BlackJackClasses.Helpers;
 using BlackJackTrainner.Enums;
+using BlackJackTrainner.Model;
 using BlackJackTrainner.Model.HandSuggestionGeneration;
 using Newtonsoft.Json;
 using PlayingCards;
 
-namespace BlackJackTrainner.Model
+namespace BlackJackClasses.Model
 {
     public class GameState
     {
 
-        public GameState(BlackJackRules rules,PlayStrategiesTypes playStrategiesType = PlayStrategiesTypes.SingleHandBook)
+        public GameState(BlackJackRules rules, PlayStrategiesTypes playStrategiesType = PlayStrategiesTypes.SingleHandBook)
         {
             Random = new Random();
+            GameId = DateTimeOffset.Now.UtcTicks;
+            CardCount = 0;
             Rules = rules;
             Shute = new List<PlayingCard>();
             PlayersHand = new ObservableCollection<PlayersHand>();
-            
             PlayedCards = new List<PlayingCard>();
             DealersHand = new List<PlayingCard>();
             TotalMoney = 1000;
@@ -30,9 +32,11 @@ namespace BlackJackTrainner.Model
             PlayStrategiesType = playStrategiesType;
         }
 
+        public long GameId;
+        public int CardCount { get; set; }
         public Random Random { get; set; }
         public BlackJackRules Rules { get; set; }
-
+        public List<BlackJackActionRecord> ActionRecords { get; set; }
         public bool InGame { get; set; }
 
         public int NumberOfHandsToPlay { get; set; }
@@ -47,6 +51,11 @@ namespace BlackJackTrainner.Model
 
             Shute = DeckHelper.ShuffleDeck(Shute, 25, Random);
             ShutesPlayed++;
+            CardCount = 0;
+            //Wait for Actions To save
+            BlackJackActionRecordHelper.SaveGameRecordsAsync(ActionRecords, Rules.name).GetAwaiter().GetResult();
+            GameId = DateTimeOffset.Now.UtcTicks;
+            ActionRecords.Clear();
         }
         public void Start()
         {
@@ -67,17 +76,17 @@ namespace BlackJackTrainner.Model
             }
 
             CurrentPlayerIndex = 0;
-            
+
             PlayersHand = new ObservableCollection<PlayersHand>();
             DealersHand = new List<PlayingCard>();
-            
-            TotalMoney = TotalMoney - (Bet * NumberOfHandsToPlay);
+
+            TotalMoney = TotalMoney - Bet * NumberOfHandsToPlay;
 
 
             for (int i = 0; i < NumberOfHandsToPlay; i++)
             {
                 PlayersHand.Add(new PlayersHand(Bet));
-                DealACard(false,i);
+                DealACard(false, i);
             }
             DealACard(true);
             for (int i = 0; i < NumberOfHandsToPlay; i++)
@@ -94,8 +103,8 @@ namespace BlackJackTrainner.Model
                 PlayersHand[i].DealersUpCardValue = DealersValue;
                 calculateHandSuggestions(i);
             }
-            
-            
+
+
             if (GameStateExtensions.calculateValue(DealersHand) == 21)
             {
 
@@ -112,10 +121,12 @@ namespace BlackJackTrainner.Model
             CheckAndPayBlackJack();
         }
 
-        private void DealACard(bool Dealer = true, int PlayersHandIndex=-1)
+        private PlayingCard DealACard(bool Dealer = true, int PlayersHandIndex = -1)
         {
             try
             {
+                //Todo, Do NOT SHuffle in middle of Hand.
+                //TODO, Implement random number of cards left in shute. <-look up estimates.
                 if (Shute.Count < 52)
                 {
                     ShuffleShute();
@@ -130,7 +141,7 @@ namespace BlackJackTrainner.Model
                     if (PlayersHandIndex == -1)
                     {
                         MessageBox.Show("Card delt to No one");
-                        return;
+                        return null;
                     }
                     else
                     {
@@ -139,9 +150,10 @@ namespace BlackJackTrainner.Model
                     }
 
                 }
-
+                var cardPlayed = Shute[0];
                 PlayedCards.Add(Shute[0]);
                 Shute.RemoveAt(0);
+                return cardPlayed;
             }
             catch (Exception e)
             {
@@ -154,7 +166,8 @@ namespace BlackJackTrainner.Model
         public void FinishDealersHand()
         {
             HandsPlayed += PlayersHand.Count;
-            
+
+            //ToDo Implement Push On 22
             bool HitAgain = true;
             while (HitAgain)
             {
@@ -168,7 +181,8 @@ namespace BlackJackTrainner.Model
                 }
             }
 
-            foreach (var playersHand in PlayersHand)
+            //TODO add Hand results to all actions in Players Hands
+            foreach (var playersHand in PlayersHand.Where(p=>p.HandResult == HandResultTypes.unkown))
             {
                 playersHand.HandResult = HandResultTypes.unkown;
                 if (playersHand.CurrentValue > 21)
@@ -191,21 +205,14 @@ namespace BlackJackTrainner.Model
                     }
                     else if (playersHand.CurrentValue > DealersValue || DealersValue > 21)
                     {
-                        if (playersHand.hand.Count == 2 && playersHand.CurrentValue == 21 && !playersHand.OverrideCanSplit)
-                        {
-                            playersHand.HandResult = HandResultTypes.Win;
-                            playersHand.MoneyWon = (int)Math.Floor((playersHand.EndingBet * 11) / (decimal)5);
-                            TotalMoney = TotalMoney + (int)Math.Floor((playersHand.EndingBet * 11) / (decimal)5);
-                        }
-                        else
-                        {
-                            playersHand.HandResult = HandResultTypes.Win;
-                            playersHand.MoneyWon = playersHand.EndingBet*2;
-                            TotalMoney = TotalMoney + playersHand.EndingBet * 2;
-                        }
-
+                        //BlackJack Handled Already
+                        
+                        //Pay out if Hand Wins
+                        playersHand.HandResult = HandResultTypes.Win;
+                        playersHand.MoneyWon = playersHand.EndingBet * 2;
+                        TotalMoney = TotalMoney + playersHand.EndingBet * 2;
                     }
-                    else if(DealersValue > playersHand.CurrentValue)
+                    else if (DealersValue > playersHand.CurrentValue)
                     {
                         playersHand.HandResult = HandResultTypes.Loose;
                         playersHand.MoneyWon = 0;
@@ -217,6 +224,19 @@ namespace BlackJackTrainner.Model
                     MessageBox.Show("No Result For Hand");
                 }
             }
+            
+            if(PlayersHand.Count(p=>p.HandResult == HandResultTypes.unkown) >0 || PlayersHand.Any(p=>p.ActionRecords.Any(x=>x.GameOutcome == HandResultTypes.unkown)))
+            {
+                MessageBox.Show("Something Bad Happened \n Players result Unkown, or ActionRecords missing Game Outcome");
+                Console.WriteLine("Something Bad Happened \n Players  result Unkown, or ActionRecords missing Game Outcome");
+            }
+
+
+            foreach(var player in PlayersHand)
+            {
+                ActionRecords.AddRange(player.ActionRecords);
+            }
+
         }
 
         public void CheckAndPayBlackJack()
@@ -224,16 +244,15 @@ namespace BlackJackTrainner.Model
             for (int i = 0; i < PlayersHand.Count; i++)
             {
 
-                if(PlayersHand[i].CurrentValue == 21)
+                if (PlayersHand[i].CurrentValue == 21)
                 {
-                    PlayersHand[i].HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), CurrentPlayer.canSplit(), CurrentPlayer.canDouble()));
-                    PlayersHand[i].HandResult = HandResultTypes.Win;
-
-                    //TODO change to use settings for blackjack win percent.
-                    PlayersHand[i].MoneyWon = PlayersHand[i].EndingBet * 2;
+                    
+                    PlayersHand[i].HandResult = HandResultTypes.BlackJack;
+                    PlayersHand[i].MoneyWon = PlayersHand[i].EndingBet * Rules.payoutForBlackJack;
+                    PlayersHand[i].ActionRecords.Add(new BlackJackActionRecord(GameId, HandsPlayed+i, 0, CardCount, false, false, DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), DealersValue) { GameOutcome = HandResultTypes.BlackJack,Action = ActionTypes.None,FinalHandValue = 21, });
                     PlayersHand[i].handOver = true;
                 }
-                
+
             }
         }
 
@@ -244,8 +263,9 @@ namespace BlackJackTrainner.Model
 
         public void stay()
         {
-            PlayersHand[CurrentPlayerIndex].HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), CurrentPlayer.canSplit(), CurrentPlayer.canDouble()));
-            PlayersHand[CurrentPlayerIndex].ActionsTaken.Add(ActionTypes.Stay);
+            PlayersHand[CurrentPlayerIndex].ActionRecords.Add(new BlackJackActionRecord(GameId, HandsPlayed+CurrentPlayerIndex, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, CardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble, 
+                DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), DealersValue) { Action = ActionTypes.Stay });
+
             PlayersHand[CurrentPlayerIndex].handOver = true;
             CheckPlayersTurnIsOverOrAdvanceToNextHand();
         }
@@ -257,15 +277,32 @@ namespace BlackJackTrainner.Model
 
         public void Hit()
         {
-            PlayersHand[CurrentPlayerIndex].HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), CurrentPlayer.canSplit(), CurrentPlayer.canDouble()));
-            PlayersHand[CurrentPlayerIndex].ActionsTaken.Add(ActionTypes.Hit);
-            DealACard(false,CurrentPlayerIndex);
+            var ActionToAdd = new BlackJackActionRecord(GameId, HandsPlayed + CurrentPlayerIndex, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, CardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble,
+                DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), DealersValue)
+            { Action = ActionTypes.Hit };
+            
+
+            var cardDelt = DealACard(false, CurrentPlayerIndex);
+            //ToDo Compare cardDelt with card added to players hand.
+            ActionToAdd.CardDrawn = cardDelt.Value;
+
+            
             if (PlayersHand[CurrentPlayerIndex].CurrentValue > 21)
             {
                 PlayersHand[CurrentPlayerIndex].handOver = true;
+                ActionToAdd.GameOutcome = HandResultTypes.Loose;
+                ActionToAdd.ResultedInBust = true;
+                ActionToAdd.FinalHandValue = PlayersHand[CurrentPlayerIndex].CurrentValue;
+                PlayersHand[CurrentPlayerIndex].ActionRecords.Add(ActionToAdd);
                 CheckPlayersTurnIsOverOrAdvanceToNextHand();
             }
-            calculateHandSuggestions(CurrentPlayerIndex);
+            else
+            {
+                PlayersHand[CurrentPlayerIndex].ActionRecords.Add(ActionToAdd);
+                calculateHandSuggestions(CurrentPlayerIndex);
+            }
+
+            
         }
 
         public bool canDoubleDown
@@ -287,7 +324,7 @@ namespace BlackJackTrainner.Model
             PlayersHand[CurrentPlayerIndex].handOver = true;
             TotalMoney = TotalMoney - PlayersHand[CurrentPlayerIndex].StartingBet;
             PlayersHand[CurrentPlayerIndex].EndingBet += PlayersHand[CurrentPlayerIndex].EndingBet;
-            DealACard(false,CurrentPlayerIndex);
+            DealACard(false, CurrentPlayerIndex);
             CheckPlayersTurnIsOverOrAdvanceToNextHand();
         }
 
@@ -308,12 +345,12 @@ namespace BlackJackTrainner.Model
             PlayersHand[CurrentPlayerIndex].HandResults.Add(new SingleHandResult(DeckHelper.DeckCardNumber(CurrentPlayer.hand.ToList()), true, CurrentPlayer.canDouble()));
             PlayersHand[CurrentPlayerIndex].hand.RemoveAt(0);
             PlayersHand[CurrentPlayerIndex].OverrideCanSplit = true;
-            PlayersHand.Insert(CurrentPlayerIndex+1,handToAdd);          
+            PlayersHand.Insert(CurrentPlayerIndex + 1, handToAdd);
 
             TotalMoney = TotalMoney - PlayersHand[CurrentPlayerIndex].EndingBet;
-            DealACard(false,CurrentPlayerIndex);
-            DealACard(false, CurrentPlayerIndex+1);
-            
+            DealACard(false, CurrentPlayerIndex);
+            DealACard(false, CurrentPlayerIndex + 1);
+
 
             calculateHandSuggestions(CurrentPlayerIndex);
 
@@ -337,7 +374,7 @@ namespace BlackJackTrainner.Model
         }
 
 
-        
+
 
 
         public int CurrentPlayerIndex { get; set; }
@@ -368,7 +405,7 @@ namespace BlackJackTrainner.Model
         public List<PlayingCard> Shute { get; set; }
 
         public ObservableCollection<PlayersHand> PlayersHand { get; set; }
-        
+
         public List<PlayingCard> DealersHand { get; set; }
 
         public bool PlayersTurnDone
@@ -378,30 +415,30 @@ namespace BlackJackTrainner.Model
 
         public void CheckPlayersTurnIsOverOrAdvanceToNextHand()
         {
-            while(!PlayersTurnDone && CurrentPlayer.handOver && (CurrentPlayerIndex+1) < PlayersHand.Count)
+            while (!PlayersTurnDone && CurrentPlayer.handOver && CurrentPlayerIndex + 1 < PlayersHand.Count)
             {
                 CurrentPlayerIndex++;
             }
         }
 
-        
+
 
         public void calculateHandSuggestions(int playerIndexToCalulateFor)
         {
-            
+
             switch (PlayStrategiesType)
             {
                 case PlayStrategiesTypes.SingleHandBook:
                     PlayersHand[playerIndexToCalulateFor].HandSuggesstion = SingleHandBook.LookUpSuggestions(PlayersHand[playerIndexToCalulateFor].hand.ToList(), PlayersHand[playerIndexToCalulateFor].DealersUpCardValue, PlayersHand[playerIndexToCalulateFor].canSplit());
                     break;
                 case PlayStrategiesTypes.Random:
-                    PlayersHand[playerIndexToCalulateFor].HandSuggesstion = HandResultExtensions.GetRandomSuggestions(PlayersHand[playerIndexToCalulateFor],Random);
+                    PlayersHand[playerIndexToCalulateFor].HandSuggesstion = HandResultExtensions.GetRandomSuggestions(PlayersHand[playerIndexToCalulateFor], Random);
                     break;
                 case PlayStrategiesTypes.SingleHandAdaptive:
                     HandResults.GetSingleHandSuggestions(PlayersHand[playerIndexToCalulateFor], Random);
 
-                break;
-                    
+                    break;
+
             }
 
             return;

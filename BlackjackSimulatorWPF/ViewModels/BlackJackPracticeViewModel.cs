@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using BlackJackTrainner.Model;
 using CommunityToolkit.Mvvm.Input;
 using PlayingCards;
 using System.Windows.Controls;
@@ -14,6 +13,7 @@ using System.Windows;
 using System.ComponentModel;
 using System.Windows.Data;
 using CommunityToolkit.Mvvm.Messaging;
+using BlackJackClasses.Model;
 
 namespace BlackJackSimulatorWPF.ViewModel
 {

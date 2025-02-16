@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BlackJackClasses.Model;
 using BlackJackTrainner.Enums;
 using PlayingCards;
 
 namespace BlackJackTrainner.Model
 {
-   public static class HandResultExtensions
+    public static class HandResultExtensions
     {
 
         public static string getCsvHeaders()

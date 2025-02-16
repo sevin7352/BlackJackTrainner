@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using BlackJackTrainner.Enums;
 using PlayingCards;
 
-namespace BlackJackTrainner.Model
+namespace BlackJackClasses.Model
 {
     public static class GameStateExtensions
     {
@@ -31,7 +31,7 @@ namespace BlackJackTrainner.Model
             return sum;
         }
 
-        public static int calculateValue(int[] cards, bool countAceAs11=false)
+        public static int calculateValue(int[] cards, bool countAceAs11 = false)
         {
             int sum = 0;
             foreach (var card in cards)
@@ -44,7 +44,7 @@ namespace BlackJackTrainner.Model
                 {
                     sum += card;
                 }
-                
+
             }
 
             if (cards.Count(p => p == 1) > 0)

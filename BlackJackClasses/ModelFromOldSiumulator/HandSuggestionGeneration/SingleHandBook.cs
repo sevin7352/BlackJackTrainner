@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using BlackJackClasses.Model;
 using PlayingCards;
 
 namespace BlackJackTrainner.Model.HandSuggestionGeneration

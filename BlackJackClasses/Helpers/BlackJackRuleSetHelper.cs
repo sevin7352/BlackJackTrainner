@@ -11,7 +11,19 @@ namespace BlackJackClasses.Helpers
 {
     public static class BlackJackRuleSetHelper
     {
-        public static string RuleSetsLocation = "C:\\Users\\Grant.Sevin\\source\\repos\\BlackJackTrainner\\BlackJackClasses\\BalckJackRuleSets\\";
+        public static string RuleSetsLocation
+        {
+            get
+            {
+                string current = AppDomain.CurrentDomain.BaseDirectory;
+                string dataBaseRootFolder = current.Substring(0, current.IndexOf("BlackJackTrainner"));
+
+
+                return Path.Combine(dataBaseRootFolder, "BlackJackTrainner\\BlackJackClasses", "BalckJackRuleSets");
+            }
+        }
+
+
         public static List<BlackJackRules> GetRuleSets()
         {
             List<BlackJackRules> ruleSetsToReturn = new List<BlackJackRules>();
@@ -38,6 +50,30 @@ namespace BlackJackClasses.Helpers
             {
                 File.WriteAllText(RuleSetsLocation + ruleSet.name + ".json", JsonConvert.SerializeObject(ruleSet));
             }
+        }
+        public static BlackJackRules AllowUserToSelectRuleSet()
+        {
+            var rules = BlackJackRuleSetHelper.GetRuleSets();
+            int index = 1;
+            Console.WriteLine("Select Rules To use by entering the corrisponding number");
+            foreach (var rule in rules)
+            {
+                Console.WriteLine(index + " - " + rule.name);
+            }
+
+            var ruleToUse = rules[0];
+            if (rules.Count != 1)
+            {
+                var input = Console.ReadLine();
+                int selectedIndex;
+                int.TryParse(input, out selectedIndex);
+                if (selectedIndex != -1)
+                {
+                    ruleToUse = rules[selectedIndex];
+                }
+            }
+
+            return ruleToUse;
         }
     }
 }

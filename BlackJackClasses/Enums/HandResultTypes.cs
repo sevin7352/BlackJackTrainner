@@ -12,7 +12,7 @@ namespace BlackJackTrainner.Enums
         Loose =1,
         Push = 2,
         Win = 3,
-        
+        BlackJack= 4,
 
     }
 }

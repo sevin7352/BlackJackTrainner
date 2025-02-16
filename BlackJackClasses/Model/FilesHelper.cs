@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BlackJackTrainner.Model
+namespace BlackJackClasses.Model
 {
     public static class FilesHelper
     {

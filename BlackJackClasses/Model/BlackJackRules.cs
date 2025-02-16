@@ -10,12 +10,19 @@ namespace BlackJackClasses.Model
     {
         public string name { get; set; }
         public double payoutForBlackJack { get; set; }
-        public bool DealerPushOn22 { get; set; }
-        public bool FreeDouble { get; set; }
-        public bool FreeSplit { get; set; }
-        public bool HitOnSplitAces { get; set; }
-        public int MaxNumberOfSplits { get; set; }
         public int numberOfDecks { get; set; }
-        public bool AutomaticShuffler { get; set; }
+        //not Implemented
+        public bool DealerPushOn22 { get; set; }
+        //not Implemented
+        public bool FreeDouble { get; set; }
+        //not Implemented
+        public bool FreeSplit { get; set; }
+        //not Implemented
+        public bool HitOnSplitAces { get; set; }
+        //not Implemented
+        public int MaxNumberOfSplits { get; set; }
+        
+        //not Implemented
+        //public bool AutomaticShuffler { get; set; }
     }
 }

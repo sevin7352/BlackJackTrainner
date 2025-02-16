@@ -12,5 +12,6 @@ namespace BlackJackTrainner.Enums
         Stay = 1,
         Split = 2,
         Double = 3,
+        None = 255,
     }
 }
