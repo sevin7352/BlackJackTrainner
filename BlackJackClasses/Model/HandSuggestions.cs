@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using BlackJackClasses.Enums;
 
-namespace BlackJackTrainner.Model
+namespace BlackJackClasses.Model
 {
-   public class HandSuggestions
+    public class HandSuggestions
     {
 
         public HandSuggestions()
@@ -18,15 +18,15 @@ namespace BlackJackTrainner.Model
             DoubleDown = 0;
         }
 
-        
+
         public double Stay { get; set; }
         public double Hit { get; set; }
         public double Split { get; set; }
         public double DoubleDown { get; set; }
 
-        public ActionTypes SuggestedAction(bool canSplit,bool canDouble,bool canHit)
+        public ActionTypes SuggestedAction(bool canSplit, bool canDouble, bool canHit)
         {
-            if ((DoubleDown >= Stay && DoubleDown >= Hit && (DoubleDown >= Split || !canSplit)) && canDouble)
+            if (DoubleDown >= Stay && DoubleDown >= Hit && (DoubleDown >= Split || !canSplit) && canDouble)
             {
                 return ActionTypes.Double;
             }
@@ -34,7 +34,7 @@ namespace BlackJackTrainner.Model
             {
                 return ActionTypes.Split;
             }
-            if (((Hit >= DoubleDown || !canDouble) && (Hit >= Stay || !canSplit) && Hit >= Stay) && canHit)
+            if ((Hit >= DoubleDown || !canDouble) && (Hit >= Stay || !canSplit) && Hit >= Stay && canHit)
             {
                 return ActionTypes.Hit;
             }

@@ -3,18 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using BlackJackClasses.Model;
 using BlackJackClasses.Enums;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson;
 using PlayingCards;
 
-namespace BlackJackTrainner.Model
+namespace BlackJackClasses.Model
 {
     public class SingleHandResult
     {
 
-        public SingleHandResult(int[] hand, bool canSplit = false, bool canDouble = false)
+        public SingleHandResult(int[] hand, int deckCount, bool canSplit = false, bool canDouble = false)
         {
             CurrentHand = hand;
+            DeckCount = deckCount;
             CanSplit = canSplit;
             CanDouble = canDouble;
             ActionResults = new List<ActionResult>()
@@ -43,7 +45,7 @@ namespace BlackJackTrainner.Model
                     {
                         hand[0] = 10;
                     }
-                    CurrentHand = new int[] {hand[0], hand[0]};
+                    CurrentHand = new int[] { hand[0], hand[0] };
                 }
 
                 if (canSplit && !canDouble)
@@ -53,30 +55,33 @@ namespace BlackJackTrainner.Model
             }
         }
 
+        [BsonId]  // MongoDB will map this to the document's `_id`
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; }
         public int[] CurrentHand { get; set; }
-        public int DealersUpCardValue { get; set; }
-
+        public int DealerUpCard { get; set; }
+        public int DeckCount { get; set; }
         private int _currentValue { get; set; }
 
         public int CurrentHandValue
         {
             get
             {
-                if (_currentValue == 0 && CurrentHand.Length >0)
+                if (_currentValue == 0 && CurrentHand.Length > 0)
                 {
                     if (CurrentHand.Length == 1)
                     {
-                        _currentValue = GameStateExtensions.calculateValue(new int[] {CurrentHand[0], CurrentHand[0]});
+                        _currentValue = GameStateExtensions.calculateValue(new int[] { CurrentHand[0], CurrentHand[0] });
                     }
                     else
                     {
                         _currentValue = GameStateExtensions.calculateValue(CurrentHand);
                     }
-                   
+
                 }
 
                 return _currentValue;
-                
+
 
             }
         }
@@ -88,7 +93,7 @@ namespace BlackJackTrainner.Model
 
         public List<ActionResult> ActionResults { get; set; }
 
-        public bool CanSplit  { get; set; }
+        public bool CanSplit { get; set; }
         public bool CanDouble { get; set; }
 
         public bool ContainsAceValuedAt11
@@ -118,11 +123,11 @@ namespace BlackJackTrainner.Model
 
         public string WriteToCsv()
         {
-            string message = String.Empty;
+            string message = string.Empty;
             foreach (var actionResult in ActionResults)
             {
-                message += Math.Round(actionResult.Return, 6) + "," +DealersUpCardValue +"," + actionResult.Type + "," + actionResult.NumberOfHands + "," + actionResult.NumberOfHandsWon + "," + actionResult.NumberOfHandsLost + "," + actionResult.NumberOfHandspushed + "," +
-                                 CurrentHandValue + "," +isSpecial +"," + CanSplit + "," + CanDouble+","+ContainsAceValuedAt11+",";
+                message += Math.Round(actionResult.Return, 6) + "," + DealerUpCard + "," + actionResult.Type + "," + actionResult.NumberOfHands + "," + actionResult.NumberOfHandsWon + "," + actionResult.NumberOfHandsLost + "," + actionResult.NumberOfHandspushed + "," +
+                                 CurrentHandValue + "," + isSpecial + "," + CanSplit + "," + CanDouble + "," + ContainsAceValuedAt11 + ",";
                 foreach (var hand in CurrentHand)
                 {
                     message += hand + ",";
@@ -147,21 +152,29 @@ namespace BlackJackTrainner.Model
         public int NumberOfHandsWon { get; set; }
         public int NumberOfHandsLost { get; set; }
         public int NumberOfHandspushed { get; set; }
-        public double Return { get; set; }
+        //ToDo Define How Return should be determined.  using expected value.
+        public double Return
+        {
+            get
+            {
+                if (NumberOfHands == 0) return 0; // Avoid division by zero
+
+                return (double)(NumberOfHandsWon - NumberOfHandsLost) / NumberOfHands;
+            }
+        }
     }
 
     public static class ActionResultHelper
     {
-        public static ActionResult Combine (ActionResult one, ActionResult two)
+        public static ActionResult Combine(ActionResult one, ActionResult two)
         {
 
 
             int TotalHands = one.NumberOfHands + two.NumberOfHands;
-            double MoneyReturn = ((one.Return * one.NumberOfHands) / TotalHands) +
-                                 ((two.NumberOfHands * two.Return) / TotalHands);
+            
             return new ActionResult(one.Type)
             {
-                Return = MoneyReturn,
+                
                 NumberOfHands = TotalHands,
                 NumberOfHandsWon = one.NumberOfHandsWon + two.NumberOfHandsWon,
                 NumberOfHandsLost = one.NumberOfHandsLost + two.NumberOfHandsLost,

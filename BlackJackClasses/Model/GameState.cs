@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using BlackJackClasses.Helpers;
 using BlackJackClasses.Enums;
-using BlackJackTrainner.Model;
-using BlackJackTrainner.Model.HandSuggestionGeneration;
 using Newtonsoft.Json;
 using PlayingCards;
+using BlackJackClasses.Model.HandSuggestionGeneration;
 
 namespace BlackJackClasses.Model
 {

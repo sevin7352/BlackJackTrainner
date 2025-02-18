@@ -2,7 +2,6 @@
 using BlackJackClasses.Enums;
 using BlackJackClasses.Helpers;
 using BlackJackClasses.Model;
-using BlackJackTrainner.Model;
 
 Console.WriteLine("Hello, World!");
 

@@ -6,8 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using BlackJackClasses.Enums;
-using BlackJackTrainner.Model;
-using BlackJackTrainner.Model.HandSuggestionGeneration;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm;
 using Newtonsoft.Json;
@@ -16,6 +14,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System.Threading;
 using BlackJackClasses.Model;
 using BlackJackClasses.Helpers;
+using BlackJackClasses.Model.HandSuggestionGeneration;
 
 namespace BlackJackSimulatorWPF.ViewModel
 {

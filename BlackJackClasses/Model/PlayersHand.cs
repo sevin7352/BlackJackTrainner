@@ -5,8 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BlackJackClasses.Enums;
-using BlackJackTrainner.Model;
-using BlackJackTrainner.Model.HandSuggestionGeneration;
+using BlackJackClasses.Model.HandSuggestionGeneration;
 using PlayingCards;
 
 namespace BlackJackClasses.Model

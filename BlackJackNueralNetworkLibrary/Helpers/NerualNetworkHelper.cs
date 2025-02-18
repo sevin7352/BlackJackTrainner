@@ -1,13 +1,13 @@
 ﻿using BlackJackNueralNetworkLibrary.Model;
-using BlackJackTrainner.Model;
 using BlackJackClasses.Enums;
-using BlackJackTrainner.Model.HandSuggestionGeneration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using BlackJackClasses.Model;
+using BlackJackClasses.Model.HandSuggestionGeneration;
 
 namespace BlackJackClasses.Helpers
 {
