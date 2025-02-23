@@ -11,7 +11,7 @@ namespace BlackJackClasses.Model
 {
     public class BlackJackActionRecord
     {
-        public BlackJackActionRecord(long gameId,int handId,int actionIndex,int deckCount,bool canSplit,bool canDouble, int[] playersHand,int dealerUpCard)
+        public BlackJackActionRecord(long gameId,int handId,int actionIndex,int deckCount,bool canSplit,bool canDouble, int playersTotal,int dealerUpCard,bool containsAceValuedAs11)
         {
             GameId = gameId;
             HandId = handId;
@@ -19,9 +19,9 @@ namespace BlackJackClasses.Model
             DeckCount = deckCount;
             CanSplit = canSplit;
             CanDouble = canDouble;
-            PlayersHand = playersHand;
-            PlayerTotal = GameStateExtensions.calculateValue(PlayersHand);
+            PlayerTotal = playersTotal;
             DealerUpCard = dealerUpCard;
+            ContainsAceValuedAs11 = containsAceValuedAs11;
         }
 
         [BsonId]  // MongoDB will map this to the document's `_id`
@@ -35,8 +35,7 @@ namespace BlackJackClasses.Model
         public int DeckCount { get; set; } //only used when counting cards is enabled
         public bool CanSplit { get; set; }
         public bool CanDouble {get;set;}
-        public int[] PlayersHand { get; set; }
-        
+        public bool ContainsAceValuedAs11 { get; set; }
         public int PlayerTotal { get; set; } // Total hand value before the action
         public int DealerUpCard { get; set; } // Dealer's face-up card
 

@@ -9,7 +9,7 @@ Console.WriteLine("Hello, World!");
 var rules = BlackJackRuleSetHelper.AllowUserToSelectRuleSet();
 
 //var existingRecords = BlackJackActionRecordHelper.LoadAllRecords(rules.name);
-int MaxShutesToPlay = 10000;
+int MaxShutesToPlay = 100000;
 var game = new GameState(rules, BlackJackClasses.Enums.PlayStrategiesTypes.Random);
 game.Start();
 int updatecount = 0;
@@ -30,7 +30,7 @@ while (game.InGame && game.ShutesPlayed <= MaxShutesToPlay)
         var playerHand = game.CurrentPlayer;
         while (!playerHand.handOver)
         {
-            switch (playerHand.HandSuggesstion.SuggestedAction(playerHand.canSplit, playerHand.canDouble, playerHand.canHit()))
+            switch (playerHand.HandSuggesstion.SuggestedAction(playerHand.canSplit, playerHand.canDouble, playerHand.canHit))
             {
 
                 case ActionTypes.Stay:

@@ -13,77 +13,30 @@ namespace BlackJackClasses.Model
     public class SingleHandResult
     {
 
-        public SingleHandResult(int[] hand, int deckCount, bool canSplit = false, bool canDouble = false)
+        public SingleHandResult(int handValue, int dealerUpCard , int deckCount, bool aceAs11, bool canSplit = false, bool canDouble = false)
         {
-            CurrentHand = hand;
+            CurrentHandValue = handValue;
             DeckCount = deckCount;
             CanSplit = canSplit;
             CanDouble = canDouble;
+            DealerUpCard = dealerUpCard;
+            ContainsAceAs11 = aceAs11;
             ActionResults = new List<ActionResult>()
             {
 
             };
-            if (hand != null)
-            {
-                if (hand.Length >= 2)
-                {
-                    ActionResults.Add(new ActionResult(ActionTypes.Stay));
-                }
-
-                if (CanHit)
-                {
-                    ActionResults.Add(new ActionResult(ActionTypes.Hit));
-                }
-                if (canDouble)
-                {
-                    ActionResults.Add(new ActionResult(ActionTypes.Double));
-                }
-                if (canSplit)
-                {
-                    ActionResults.Add(new ActionResult(ActionTypes.Split));
-                    if (hand[0] > 10)
-                    {
-                        hand[0] = 10;
-                    }
-                    CurrentHand = new int[] { hand[0], hand[0] };
-                }
-
-                if (canSplit && !canDouble)
-                {
-                    int i = 0;
-                }
-            }
+            
         }
 
         [BsonId]  // MongoDB will map this to the document's `_id`
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
-        public int[] CurrentHand { get; set; }
+        
         public int DealerUpCard { get; set; }
-        public int DeckCount { get; set; }
-        private int _currentValue { get; set; }
-
+        public int DeckCount { get; set; } 
         public int CurrentHandValue
         {
-            get
-            {
-                if (_currentValue == 0 && CurrentHand.Length > 0)
-                {
-                    if (CurrentHand.Length == 1)
-                    {
-                        _currentValue = GameStateExtensions.calculateValue(new int[] { CurrentHand[0], CurrentHand[0] });
-                    }
-                    else
-                    {
-                        _currentValue = GameStateExtensions.calculateValue(CurrentHand);
-                    }
-
-                }
-
-                return _currentValue;
-
-
-            }
+            get; set;
         }
 
         public int NumberOfHands
@@ -96,48 +49,10 @@ namespace BlackJackClasses.Model
         public bool CanSplit { get; set; }
         public bool CanDouble { get; set; }
 
-        public bool ContainsAceValuedAt11
-        {
-            get
-            {
-                if (CurrentHand.Contains(1) && GameStateExtensions.calculateValue(CurrentHand, true) <= 21)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        }
+        public bool ContainsAceAs11 { get; set; }
 
-        public bool CanHit
-        {
-            get { return CurrentHand.Length >= 2 && CurrentHandValue < 21; }
-        }
+        public bool CanHit { get; set; }
 
-        public bool isSpecial
-        {
-            get { return CurrentHand.IsHandSpecial(); }
-        }
-
-        public string WriteToCsv()
-        {
-            string message = string.Empty;
-            foreach (var actionResult in ActionResults)
-            {
-                message += Math.Round(actionResult.Return, 6) + "," + DealerUpCard + "," + actionResult.Type + "," + actionResult.NumberOfHands + "," + actionResult.NumberOfHandsWon + "," + actionResult.NumberOfHandsLost + "," + actionResult.NumberOfHandspushed + "," +
-                                 CurrentHandValue + "," + isSpecial + "," + CanSplit + "," + CanDouble + "," + ContainsAceValuedAt11 + ",";
-                foreach (var hand in CurrentHand)
-                {
-                    message += hand + ",";
-                }
-
-                message += " \n";
-            }
-
-            return message;
-        }
     }
 
     public class ActionResult

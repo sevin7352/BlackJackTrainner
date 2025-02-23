@@ -24,6 +24,7 @@ while (game.InGame && game.ShutesPlayed <= MaxShutesToPlay)
         currentshute = game.ShutesPlayed;
         Console.WriteLine("Number Of Shutes Played:"+currentshute);
         Console.WriteLine("TotalMoney:" + game.TotalMoney);
+
     }
 
     while (!game.PlayersTurnDone)
@@ -31,7 +32,7 @@ while (game.InGame && game.ShutesPlayed <= MaxShutesToPlay)
         var playerHand = game.CurrentPlayer;
         while (!playerHand.handOver)
         {
-            switch (playerHand.HandSuggesstion.SuggestedAction(playerHand.canSplit, playerHand.canDouble, playerHand.canHit()))
+            switch (playerHand.HandSuggesstion.SuggestedAction(playerHand.canSplit, playerHand.canDouble, playerHand.canHit))
             {
 
                 case ActionTypes.Stay:
@@ -56,5 +57,8 @@ while (game.InGame && game.ShutesPlayed <= MaxShutesToPlay)
 
     game.Deal();
 }
+
+Console.WriteLine("NumbersOfHandsPlayed:" + game.HandsPlayed + " EndingMoney:" + game.TotalMoney);
+Console.ReadLine();
 
 

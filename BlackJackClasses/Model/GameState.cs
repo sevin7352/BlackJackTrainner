@@ -35,6 +35,18 @@ namespace BlackJackClasses.Model
 
         public long GameId;
         public int CardCount { get; set; }
+        public int TrueCardCount { get
+            {
+                int numberOfCards = (Rules.numberOfDecks * 52);
+                int numberOfCardsLeft = numberOfCards - PlayedCards.Count;
+                double numberofDecksLeft = (double)numberOfCardsLeft / 52;  
+                double temp = ((double)CardCount / numberofDecksLeft);
+                if(temp < -40 || temp > 40)
+                {
+                    int i = 0;
+                }
+                return (int)Math.Round(temp,0);
+            } }
         public Random Random { get; set; }
         public BlackJackRules Rules { get; set; }
         public List<BlackJackActionRecord> ActionRecords { get; set; }
@@ -43,14 +55,20 @@ namespace BlackJackClasses.Model
         public int NumberOfHandsToPlay { get; set; }
 
         public bool ShuffleShuteAfterHand { get; set; }
+        public int ShuffleShuteNumberOfCardsLeft { get; set; }
         public void ShuffleShute()
         {
             PlayedCards = new List<PlayingCard>();
+            Shute = new List<PlayingCard>();
             for (int i = 0; i < Rules.numberOfDecks; i++)
             {
                 Shute.AddRange(DeckHelper.FreshDeck);
             }
+            int NumberOfCards = Rules.numberOfDecks * 52;
 
+            double numberOfCardsLeftpercentage = Random.Next(70, 80);
+            int NumberOfCardsLeft = (int)(NumberOfCards * ((100 - numberOfCardsLeftpercentage) / 100));
+            ShuffleShuteNumberOfCardsLeft = NumberOfCardsLeft;
             Shute = DeckHelper.ShuffleDeck(Shute, 25, Random);
             ShutesPlayed++;
             CardCount = 0;
@@ -137,7 +155,10 @@ namespace BlackJackClasses.Model
             {
                 //Todo, Do NOT SHuffle in middle of Hand.
                 //TODO, Implement random number of cards left in shute. <-look up estimates.
-                if (Shute.Count < 52)
+                
+
+
+                if (Shute.Count < ShuffleShuteNumberOfCardsLeft)
                 {
                     ShuffleShuteAfterHand = true;
                 }
@@ -161,7 +182,7 @@ namespace BlackJackClasses.Model
 
                 }
                 var cardPlayed = Shute[0];
-                if (cardPlayed.Value < 6)
+                if (cardPlayed.Value < 6 && !cardPlayed.isAce)
                 {
                     CardCount++;
                 }
@@ -169,7 +190,7 @@ namespace BlackJackClasses.Model
                 {
 
                 }
-                else if(cardPlayed.Value >= 10)
+                else if(cardPlayed.Value >= 10 || cardPlayed.isAce)
                 {
                     CardCount--;
                 }
@@ -312,7 +333,7 @@ namespace BlackJackClasses.Model
                     
                     PlayersHand[i].HandResult = HandResultTypes.BlackJack;
                     PlayersHand[i].MoneyWon = PlayersHand[i].EndingBet * Rules.payoutForBlackJack;
-                    PlayersHand[i].ActionRecords.Add(new BlackJackActionRecord(GameId, HandsPlayed+i, 0, CardCount, false, false, DeckHelper.DeckCardValues(CurrentPlayer.hand.ToList()), DealersValue) { GameOutcome = HandResultTypes.BlackJack,Action = ActionTypes.None,FinalHandValue = 21, });
+                    PlayersHand[i].ActionRecords.Add(new BlackJackActionRecord(GameId, HandsPlayed+i, 0, TrueCardCount, false, false, PlayersHand[i].CurrentValue, DealersValue, PlayersHand[i].ContainsAceValuedAt11) { GameOutcome = HandResultTypes.BlackJack,Action = ActionTypes.None,FinalHandValue = 21, });
                     PlayersHand[i].handOver = true;
                 }
 
@@ -326,8 +347,8 @@ namespace BlackJackClasses.Model
 
         public void stay()
         {
-            PlayersHand[CurrentPlayerIndex].ActionRecords.Add(new BlackJackActionRecord(GameId, HandsPlayed+CurrentPlayerIndex, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, CardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble, 
-                DeckHelper.DeckCardValues(CurrentPlayer.hand.ToList()), DealersValue) { Action = ActionTypes.Stay });
+            PlayersHand[CurrentPlayerIndex].ActionRecords.Add(new BlackJackActionRecord(GameId, HandsPlayed+CurrentPlayerIndex, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, TrueCardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble,
+                PlayersHand[CurrentPlayerIndex].CurrentValue, DealersValue, PlayersHand[CurrentPlayerIndex].ContainsAceValuedAt11) { Action = ActionTypes.Stay });
 
             PlayersHand[CurrentPlayerIndex].handOver = true;
             CheckPlayersTurnIsOverOrAdvanceToNextHand();
@@ -335,13 +356,13 @@ namespace BlackJackClasses.Model
 
         public bool CanHit
         {
-            get { return PlayersHand[CurrentPlayerIndex].canHit(); }
+            get { return PlayersHand[CurrentPlayerIndex].canHit; }
         }
 
         public void Hit()
         {
-            var ActionToAdd = new BlackJackActionRecord(GameId, HandsPlayed + CurrentPlayerIndex, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, CardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble,
-                DeckHelper.DeckCardValues(CurrentPlayer.hand.ToList()), DealersValue)
+            var ActionToAdd = new BlackJackActionRecord(GameId, HandsPlayed + CurrentPlayerIndex, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, TrueCardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble,
+                 PlayersHand[CurrentPlayerIndex].CurrentValue, DealersValue, PlayersHand[CurrentPlayerIndex].ContainsAceValuedAt11)
             { Action = ActionTypes.Hit };
             
 
@@ -382,8 +403,8 @@ namespace BlackJackClasses.Model
 
         public void DoubleDown()
         {
-            var ActionToAdd = new BlackJackActionRecord(GameId, HandsPlayed + CurrentPlayerIndex, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, CardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble,
-                DeckHelper.DeckCardValues(CurrentPlayer.hand.ToList()), DealersValue)
+            var ActionToAdd = new BlackJackActionRecord(GameId, HandsPlayed + CurrentPlayerIndex, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, TrueCardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble,
+                 PlayersHand[CurrentPlayerIndex].CurrentValue, DealersValue, PlayersHand[CurrentPlayerIndex].ContainsAceValuedAt11)
             { Action = ActionTypes.Double };
 
 
@@ -415,13 +436,13 @@ namespace BlackJackClasses.Model
             var serializedobject = JsonConvert.SerializeObject(PlayersHand[CurrentPlayerIndex]);
             PlayersHand handToAdd = JsonConvert.DeserializeObject<PlayersHand>(serializedobject);
 
-            var ActionToAdd1 = new BlackJackActionRecord(GameId, HandsPlayed + CurrentPlayerIndex, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, CardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble,
-                DeckHelper.DeckCardValues(CurrentPlayer.hand.ToList()), DealersValue)
+            var ActionToAdd1 = new BlackJackActionRecord(GameId, HandsPlayed + CurrentPlayerIndex, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, TrueCardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble,
+                 PlayersHand[CurrentPlayerIndex].CurrentValue, DealersValue, PlayersHand[CurrentPlayerIndex].ContainsAceValuedAt11)
             { Action = ActionTypes.Split };
 
             //TODO, Will this Break when inserting a new Hand? Custom Insert To Update all other actions?
-            var ActionToAdd2 = new BlackJackActionRecord(GameId, HandsPlayed + CurrentPlayerIndex + 1, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, CardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble,
-                DeckHelper.DeckCardValues(CurrentPlayer.hand.ToList()), DealersValue)
+            var ActionToAdd2 = new BlackJackActionRecord(GameId, HandsPlayed + CurrentPlayerIndex + 1, PlayersHand[CurrentPlayerIndex].ActionRecords.Count, TrueCardCount, PlayersHand[CurrentPlayerIndex].canSplit, PlayersHand[CurrentPlayerIndex].canDouble,
+                 PlayersHand[CurrentPlayerIndex].CurrentValue, DealersValue, PlayersHand[CurrentPlayerIndex].ContainsAceValuedAt11)
             { Action = ActionTypes.Split };
 
 
@@ -537,7 +558,7 @@ namespace BlackJackClasses.Model
                     break;
                 case PlayStrategiesTypes.SingleHandAdaptive:
                     var playersHand = PlayersHand[playerIndexToCalulateFor];
-                    var suggestion = BlackJackActionRecordHelper.GetHandSuggestions(Rules.name, playersHand, CardCount);
+                    var suggestion = BlackJackActionRecordHelper.GetHandSuggestions(Rules.name, playersHand, TrueCardCount);
                     if (suggestion != null) {
                         playersHand.HandSuggesstion = suggestion;
                     }

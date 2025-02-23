@@ -17,6 +17,8 @@ namespace BlackJackClasses.Model
                 "Return,DealerUpCard,Action,#OfHands,# Won, # Lost,# Pushed,CurrentValue,IsSpecial,CanSplit,CanDouble,ContainsAceAt11,Card1,Card2 \n";
         }
 
+        //this needs to be reworked.
+
         public static bool AddSingleHandResults(this List<SingleHandResult> handResults,
             List<SingleHandResult> resultsToAdd)
         {
@@ -27,7 +29,7 @@ namespace BlackJackClasses.Model
                     List<SingleHandResult> existingResults = null;
                     existingResults = handResults.Where(p =>
                         p.CurrentHandValue == handResultToAdd.CurrentHandValue &&
-                        p.DealerUpCard == handResultToAdd.DealerUpCard && p.CanDouble == handResultToAdd.CanDouble && p.CanSplit == handResultToAdd.CanSplit && p.ContainsAceValuedAt11 == handResultToAdd.ContainsAceValuedAt11).ToList();
+                        p.DealerUpCard == handResultToAdd.DealerUpCard && p.CanDouble == handResultToAdd.CanDouble && p.CanSplit == handResultToAdd.CanSplit && p.ContainsAceAs11 == handResultToAdd.ContainsAceAs11).ToList();
 
                     if (existingResults == null || existingResults.Count == 0)
                     {
@@ -124,7 +126,7 @@ namespace BlackJackClasses.Model
                 Stay = Random.Next(0, 100),
             };
 
-            if (playersHand.canHit())
+            if (playersHand.canHit)
             {
                 handSuggesstion.Hit = Random.Next(0, 100);
             }
@@ -142,6 +144,12 @@ namespace BlackJackClasses.Model
 
         public static HandSuggestions GetFromSingleHandResult(SingleHandResult result)
         {
+            if(result == null)
+            {
+                Console.WriteLine("Result passed into Get Single hand is null");
+                return null;
+            }
+
             HandSuggestions handSuggesstion = new HandSuggestions();
             var actionResults = result.ActionResults;
             if (actionResults.Count > 4)
@@ -159,7 +167,7 @@ namespace BlackJackClasses.Model
                         handSuggesstion.Hit = actionresult.Return;
                         break;
                     case ActionTypes.Double:
-                        handSuggesstion.DoubleDown = actionresult.Return;
+                        handSuggesstion.DoubleDown = actionresult.Return*2;
                         break;
 
                     case ActionTypes.Split:
@@ -183,8 +191,8 @@ namespace BlackJackClasses.Model
 
                 if (playersHand.canSplit)
                 {
-                    var splitresults = handResults.Where(p => playersHand.hand[0].Value == p.CurrentHand[0] && p.CurrentHand.Length == 1 && p.DealerUpCard == playersHand.DealersUpCardValue).ToList();
-                    var nonSplitresults = handResults.Where(p => DeckHelper.ContainsCardsValues(playersHand.hand.ToList(), p.CurrentHand) && p.DealerUpCard == playersHand.DealersUpCardValue).ToList();
+                    var splitresults = handResults.Where(p => playersHand.CurrentValue == p.CurrentHandValue && p.ContainsAceAs11 == playersHand.ContainsAceValuedAt11 && p.DealerUpCard == playersHand.DealersUpCardValue).ToList();
+                    var nonSplitresults = handResults.Where(p => p.CanSplit).ToList();
                     List<ActionResult> actionResults = new List<ActionResult>();
                     if (splitresults.Count > 0)
                     {
@@ -244,7 +252,7 @@ namespace BlackJackClasses.Model
                 else if (playersHand.hand.Count(p => p.isAce) > 0)
                 {
                     //need to adjust to only worry about the value.
-                    var Aceresults = handResults.Where(p => p.isSpecial && p.CurrentHandValue == playersHand.CurrentValue && p.DealerUpCard == playersHand.DealersUpCardValue).ToList();
+                    var Aceresults = handResults.Where(p => p.ContainsAceAs11 == playersHand.ContainsAceValuedAt11 && p.CurrentHandValue == playersHand.CurrentValue && p.DealerUpCard == playersHand.DealersUpCardValue).ToList();
                     if (!Aceresults.Any())
                     {
                         playersHand.HandSuggesstion = GetRandomSuggestions(playersHand, random);
@@ -281,7 +289,7 @@ namespace BlackJackClasses.Model
                 }
             }
 
-            var results = handResults.Where(p => p.CurrentHandValue == playersHand.CurrentValue && p.DealerUpCard == playersHand.DealersUpCardValue && !p.isSpecial).ToList();
+            var results = handResults.Where(p => p.CurrentHandValue == playersHand.CurrentValue && p.DealerUpCard == playersHand.DealersUpCardValue && p.ContainsAceAs11 == playersHand.ContainsAceValuedAt11 ).ToList();
             if (!results.Any())
             {
                 if (playersHand.CurrentValue <= 21)

@@ -30,7 +30,18 @@ namespace BlackJackClasses.Model
         public int EndingBet { get; set; }
         public double MoneyWon { get; set; }
         public int DealersUpCardValue { get; set; }
+        public int NumberOfAces { get
+            {
+                return hand.Count(p=>p.CardNumber == 1);
+            } }
 
+        public bool ContainsAceValuedAt11
+        {
+            get
+            {
+                return GameStateExtensions.IsAceCountedAs11(hand.ToList());
+            }
+        }
         public bool handOver { get; set; }
 
         public int CurrentValue
@@ -64,9 +75,12 @@ namespace BlackJackClasses.Model
         }
         
 
-        public bool canHit()
+        public bool canHit
         {
-            return CurrentValue < 21 && !handOver;
+            get
+            {
+                return CurrentValue < 21 && !handOver;
+            }
         }
 
         public HandSuggestions HandSuggesstion { get; set; }

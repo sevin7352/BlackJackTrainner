@@ -36,6 +36,30 @@ namespace BlackJackClasses.Model
             return sum;
         }
 
+        public static bool IsAceCountedAs11(List<PlayingCard> cards)
+        {
+            int sum = 0;
+            foreach (var card in cards)
+            {
+                sum += card.Value;
+            }
+
+            if (cards.Count(p => p.isAce) > 0)
+            {
+                if (cards.Count(p => p.isAce) > 1)
+                {
+                    int i = 0;
+                }
+
+                if (sum + 10 <= 21)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public static int calculateValue(int[] cards, bool countAceAs11 = false)
         {
             int sum = 0;
