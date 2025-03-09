@@ -27,12 +27,12 @@ namespace BlackJackClasses.Helpers
             
         }
 
-        public static void SaveGameRecords(List<BlackJackActionRecord> records, string RulesName)
+        public static void SaveGameRecords(List<BlackJackActionRecord> records, string RulesName,string collectionNameModifier)
         {
             if(records == null || records.Count == 0) return;
 
             var mongoClient = new MongoClient(ConnectionString);
-            var collection = mongoClient.GetDatabase(mongoBatabaseName).GetCollection<BlackJackActionRecord>(RulesName);
+            var collection = mongoClient.GetDatabase(mongoBatabaseName).GetCollection<BlackJackActionRecord>(RulesName+ collectionNameModifier);
 
             foreach (var record in records) {
                 
@@ -57,6 +57,17 @@ namespace BlackJackClasses.Helpers
 
 
             return collection.AsQueryable().ToList();
+        }
+
+        public static List<BlackJackActionRecord> LoadAllWins(string RulesName, string collectionNameModifier = "")
+        {
+            var mongoClient = new MongoClient(ConnectionString);
+            var collection = mongoClient.GetDatabase(mongoBatabaseName).GetCollection<BlackJackActionRecord>(RulesName+collectionNameModifier);
+
+
+
+
+            return collection.AsQueryable().Where(p=>p.GameOutcome == HandResultTypes.BlackJack || p.GameOutcome == HandResultTypes.Win).ToList();
         }
 
         public static List<BlackJackActionRecord> GetRelevantRecords(string RulesName,PlayersHand playerHand,int deckCount) {

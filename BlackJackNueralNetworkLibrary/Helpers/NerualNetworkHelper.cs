@@ -76,18 +76,42 @@ namespace BlackJackClasses.Helpers
 
         }
 
-        public static void CreateTrainingDataFile()
-        {
-            string TrainningDateLocation = "C:\\Users\\Grant.Sevin\\Source\\Repos\\BlackJackTrainner\\BlackJackNueralNetworkLibrary\\TrainingData.csv";
-            var DataToTrainOn = NerualNetworkHelper.GetTrainingDataFromBook();
 
-            string ToWrite = "Action,PlayerHandSum,DealerUpCard,NumberOfAces,CanSplit,CanDouble\n";
+        public static List<NueralNetTrainingDataEntry> GetTrainingDataFromDatabse(string rulesName,string collectionNameModifier = "")
+        {
+            List<NueralNetTrainingDataEntry> trainingData = new List<NueralNetTrainingDataEntry>();
+            var actions = BlackJackActionRecordHelper.LoadAllWins(rulesName, collectionNameModifier);
+
+            foreach (var action in actions) {
+                trainingData.Add(new NueralNetTrainingDataEntry()
+                {
+                    PlayerHandSum = action.PlayerTotal,
+                    DealerUpCard = action.DealerUpCard,
+                    NumberOfAces = action.ContainsAceValuedAs11 ? 1:0,
+                    CanSplit = action.CanSplit ? 1: 0,
+                    CanDouble = action.CanDouble ? 1:0,
+                    Action = (int)action.Action,
+                    DeckCount = action.DeckCount,
+                });
+            }
+            return trainingData;
+        }
+
+        public static void CreateTrainingDataFile(string rulesName)
+        {
+            string TrainningDateLocation = "C:\\Users\\Grant.Sevin\\Source\\Repos\\BlackJackTrainner\\BlackJackNueralNetworkLibrary\\"+rulesName+"-TrainingData.csv";
+            var DataToTrainOn = GetTrainingDataFromDatabse(rulesName);
+
+            List<string> ToWrite = new List<string> { "Action,PlayerHandSum,DealerUpCard,NumberOfAces,CanSplit,CanDouble,DeckCount" };
+            int count = 0; 
             foreach (var model in DataToTrainOn)
             {
-                ToWrite += model.Action + "," + model.PlayerHandSum + "," + model.DealerUpCard + "," + model.NumberOfAces + "," +model.CanSplit+","+model.CanDouble+"\n";
+                var row= model.Action + "," + model.PlayerHandSum + "," + model.DealerUpCard + "," + model.NumberOfAces + "," +model.CanSplit+","+model.CanDouble+","+model.DeckCount;
+                ToWrite.Add(row);
+                count++;
             }
+            File.WriteAllLines(TrainningDateLocation, ToWrite);
 
-            File.WriteAllText(TrainningDateLocation, ToWrite);
 
 
         }

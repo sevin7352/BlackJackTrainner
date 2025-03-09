@@ -1,0 +1,32 @@
+Adaptive 100 shutes
+NumbersOfHandsPlayed:4696 EndingMoney:92160
+NumberOfTimesNoSummaryFound:1
+
+Book 100 shutes
+NumbersOfHandsPlayed:4494 EndingMoney:95140
+NumberOfTimesNoSummaryFound:0
+
+Book 1000 shutes
+NumbersOfHandsPlayed:45265 EndingMoney:44610
+NumberOfTimesNoSummaryFound:0
+
+adaptive 1000 shutes
+NumbersOfHandsPlayed:47386 EndingMoney:20190
+NumberOfTimesNoSummaryFound:19
+
+adaptive 1000 shutes with no suggestion treated as not optimal
+NumbersOfHandsPlayed:47175 EndingMoney:31590
+NumberOfTimesNoSummaryFound:18
+
+Adaptive not counting bust and stay as optimal
+NumbersOfHandsPlayed:4617 EndingMoney:94910
+NumberOfTimesNoSummaryFound:1
+NumbersOfHandsPlayed:4673 EndingMoney:94250
+NumberOfTimesNoSummaryFound:0
+NumbersOfHandsPlayed:4668 EndingMoney:92790
+NumberOfTimesNoSummaryFound:1
+
+1000 Shutes
+Adaptive not counting bust and stay as optimal
+NumbersOfHandsPlayed:46521 EndingMoney:35600
+NumberOfTimesNoSummaryFound:19

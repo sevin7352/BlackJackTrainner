@@ -1,7 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using BlackJackClasses.Helpers;
 using BlackJackNueralNetworkLibrary.Model;
-using BlackJackTrainner.Enums;
+using BlackJackClasses.Enums;
 using Microsoft.ML;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
@@ -9,30 +9,27 @@ using System.Reflection;
 Console.WriteLine("TrainModel and Save");
 
 var RuleSetToUse = BlackJackRuleSetHelper.GetRuleSets().FirstOrDefault();
+//NerualNetworkHelper.CreateTrainingDataFile(RuleSetToUse.name);
 
+//string BaseModelsRelativePath = @"../../../../MLModels";
+//string ModelRelativePath = $"{BaseModelsRelativePath}/BlackJackModel.zip";
+//string ModelPath = GetAbsolutePath(ModelRelativePath);
+var DataToTrainOn = NerualNetworkHelper.GetTrainingDataFromDatabse(RuleSetToUse.name);
 
-string BaseModelsRelativePath = @"../../../../MLModels";
-string ModelRelativePath = $"{BaseModelsRelativePath}/BlackJackModel.zip";
-string ModelPath = GetAbsolutePath(ModelRelativePath);
-string locationToSaveModelTo = "C:\\Users\\Grant.Sevin\\Source\\Repos\\BlackJackTrainner\\BlackJackNueralNetworkLibrary\\NueralNetworks\\BlackJackModel.zip";
-var DataToTrainOn = NerualNetworkHelper.GetTrainingDataFromBook();
-
-BlackJackNueralNetModel BlackJackmodel = new BlackJackNueralNetModel();
-ITransformer model;
+BlackJackNueralNetModel BlackJackmodel = new BlackJackNueralNetModel(RuleSetToUse.name);
 Console.WriteLine("Would You Like To start With a Fresh Model?");
 var FreshModelInput = Console.ReadLine();
 
-if (!File.Exists(locationToSaveModelTo) || FreshModelInput.ToLower().Contains("y"))
+if (!File.Exists(BlackJackmodel.locationToSaveModelTo) || FreshModelInput.ToLower().Contains("y"))
 {
     //SaveNewModel
     
-    model = BlackJackmodel.TrainModel(DataToTrainOn);
+    BlackJackmodel.TrainModel(DataToTrainOn);
 
     // Save the trained model to a file for future use
-    BlackJackmodel.SaveModel(model, locationToSaveModelTo);
+    BlackJackmodel.SaveModel();
 }
     
-model = BlackJackmodel.LoadModel(locationToSaveModelTo);
 
 Console.WriteLine("Would You Like To Retrain your Model?");
 var input = Console.ReadLine();
@@ -41,14 +38,14 @@ while (ContinueLoop)
 {
     if (input.ToLower().Contains("y")) //retrain
     {
-        model = BlackJackmodel.TrainOrRetrainModel(DataToTrainOn, locationToSaveModelTo);
+        BlackJackmodel.TrainOrRetrainModel(DataToTrainOn);
     }
 
     int NumberCorrect = 0;
     int total = DataToTrainOn.Count;
     foreach (var dataEntry in DataToTrainOn)
     {
-        var actionToTake = BlackJackmodel.PredictAction(model, dataEntry);
+        var actionToTake = BlackJackmodel.PredictAction(dataEntry);
 
         if (actionToTake == dataEntry.Action)
         {
@@ -70,7 +67,7 @@ while (ContinueLoop)
 
 
 //Save Before Exiting
-BlackJackmodel.SaveModel(model, locationToSaveModelTo);
+BlackJackmodel.SaveModel();
 
 
 string GetAbsolutePath(string relativePath)

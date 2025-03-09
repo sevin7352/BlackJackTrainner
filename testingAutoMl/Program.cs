@@ -3,4 +3,5 @@ using BlackJackClasses.Helpers;
 
 Console.WriteLine("Hello, World!");
 
-NerualNetworkHelper.CreateTrainingDataFile();
+var RuleSetToUse = BlackJackRuleSetHelper.AllowUserToSelectRuleSet();
+NerualNetworkHelper.CreateTrainingDataFile(RuleSetToUse.name);

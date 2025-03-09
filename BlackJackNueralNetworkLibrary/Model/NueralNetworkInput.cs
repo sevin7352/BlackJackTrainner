@@ -14,5 +14,6 @@ namespace BlackJackNueralNetworkLibrary.Model
         public int CanSplit { get; set; } // Binary flag: 0 = cannot split, 1 = can split
         public int CanDouble { get; set; } // Binary flag: 0 = cannot split, 1 = can double
         //public float BetAmount { get; set; } // Optional feature
+        public int DeckCount { get; set; }
     }
 }

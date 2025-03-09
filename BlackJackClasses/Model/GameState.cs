@@ -32,6 +32,7 @@ namespace BlackJackClasses.Model
             Bet = 10;
             PlayStrategiesType = playStrategiesType;
             NumberOfHandsToPlay = numberOfHandsToPlay;
+            SaveActionRecords = true;
         }
 
         public long GameId;
@@ -51,6 +52,24 @@ namespace BlackJackClasses.Model
             } }
         public Random Random { get; set; }
         public BlackJackRules Rules { get; set; }
+        public bool SaveActionRecords { get; set; }
+        public string ActionRecordCollectionNameModifier { get
+            {
+               switch (PlayStrategiesType)
+                {
+                    case PlayStrategiesTypes.Random:
+                        return "_Random";
+                    case PlayStrategiesTypes.SingleHandBook:
+                        return "_SingleBook";
+                    case PlayStrategiesTypes.SingleHandAdaptive:
+                        return "_adaptive";
+                    case PlayStrategiesTypes.MachineLearning:
+                        return "_MachineLearning";
+
+                }
+                return "_Unkown";
+
+            } }
         public List<BlackJackActionRecord> ActionRecords { get; set; }
         public bool InGame { get; set; }
 
@@ -76,7 +95,7 @@ namespace BlackJackClasses.Model
             CardCount = 0;
 
             //Wait for Actions To save
-            BlackJackActionRecordHelper.SaveGameRecords(ActionRecords, Rules.name);
+            BlackJackActionRecordHelper.SaveGameRecords(ActionRecords, Rules.name, ActionRecordCollectionNameModifier);
             //reset Actions for next game.
             GameId = DateTimeOffset.Now.UtcTicks;
             ActionRecords.Clear();
@@ -549,7 +568,7 @@ namespace BlackJackClasses.Model
 
         public void calculateHandSuggestions(int playerIndexToCalulateFor)
         {
-
+            var playersHand = PlayersHand[playerIndexToCalulateFor];
             switch (PlayStrategiesType)
             {
                 case PlayStrategiesTypes.SingleHandBook:
@@ -559,7 +578,7 @@ namespace BlackJackClasses.Model
                     PlayersHand[playerIndexToCalulateFor].HandSuggesstion = HandResultExtensions.GetRandomSuggestions(PlayersHand[playerIndexToCalulateFor], Random);
                     break;
                 case PlayStrategiesTypes.SingleHandAdaptive:
-                    var playersHand = PlayersHand[playerIndexToCalulateFor];
+                    
                     var suggestion = BlackJackActionRecordHelper.GetHandSuggestions(Rules.name, playersHand, TrueCardCount);
                     if (suggestion != null) {
                         playersHand.HandSuggesstion = suggestion;                    
@@ -571,6 +590,10 @@ namespace BlackJackClasses.Model
                         playersHand.HandSuggesstion = HandResultExtensions.GetRandomSuggestions(PlayersHand[playerIndexToCalulateFor], Random);
 
                     }
+
+                    break;
+                case PlayStrategiesTypes.MachineLearning:
+                    
 
                     break;
 

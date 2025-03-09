@@ -10,6 +10,7 @@ namespace BlackJackClasses.Enums
         Random = 0,
         SingleHandBook =1,
         SingleHandAdaptive = 2,
+        MachineLearning = 3,
     }
 
     public static class PlayStrategies
@@ -18,7 +19,8 @@ namespace BlackJackClasses.Enums
         {
             {PlayStrategiesTypes.Random, "Random" },
             {PlayStrategiesTypes.SingleHandBook, "Single Hand book" },
-            {PlayStrategiesTypes.SingleHandAdaptive,"Single Hand Adaptive" }
+            {PlayStrategiesTypes.SingleHandAdaptive,"Single Hand Adaptive" },
+            {PlayStrategiesTypes.MachineLearning,"MachineLearning" }
         };
     }
 
