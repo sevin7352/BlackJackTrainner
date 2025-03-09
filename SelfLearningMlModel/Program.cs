@@ -10,11 +10,14 @@ Console.WriteLine("Hello, World!");
 var rules = BlackJackRuleSetHelper.AllowUserToSelectRuleSet();
 var NueralNetModel = new BlackJackNueralNetModel(rules.name);
 string loopStatsFile = NueralNetModel.TrainingLoopStatsFile;
-File.WriteAllText(loopStatsFile, "Number Of Shutes Played, Number Of Hands Played, Money Remaining\n");
+File.WriteAllText(loopStatsFile, "Number Of Shutes Played, Number Of Hands Played, Money Remaining,Randomness\n");
 int NumberOfLoops = 100;
+double RandomnessPercentage = 0.95;
+Random random = new Random();
 
 for(int i = 0; i < NumberOfLoops; i++)
 {
+    RandomnessPercentage *= 0.95;
     //var existingRecords = BlackJackActionRecordHelper.LoadAllRecords(rules.name);
     int MaxShutesToPlay = 1000;
     var game = new GameState(rules, PlayStrategiesTypes.MachineLearning);
@@ -50,7 +53,15 @@ for(int i = 0; i < NumberOfLoops; i++)
                     NumberOfAces = playerHand.ContainsAceValuedAt11 ? 1 : 0,
 
                 };
-                switch ((ActionTypes)NueralNetModel.PredictAction(input))
+                var predictedAction = (ActionTypes)NueralNetModel.PredictAction(input);
+                if (random.NextDouble() < RandomnessPercentage)
+                {
+                    game.PlayersHand[game.CurrentPlayerIndex].HandSuggesstion = HandResultExtensions.GetRandomSuggestions(game.PlayersHand[game.CurrentPlayerIndex], game.Random);
+                    predictedAction = game.PlayersHand[game.CurrentPlayerIndex].SuggestedAction;
+                    //return GetRandomValidAction(canSplit, canDouble, canHit);
+                }
+
+                switch (predictedAction)
                 {
 
                     case ActionTypes.Stay:
@@ -86,7 +97,7 @@ for(int i = 0; i < NumberOfLoops; i++)
 
     Console.WriteLine("NumbersOfHandsPlayed:" + game.HandsPlayed + " EndingMoney:" + game.TotalMoney);
     Console.WriteLine("NumberOfTimesNoSummaryFound:" + game.NumberOfTimesNoSummaryFound);
-    File.AppendAllText(loopStatsFile, game.ShutesPlayed + "," + game.HandsPlayed + "," + game.TotalMoney + "\n");
+    File.AppendAllText(loopStatsFile, game.ShutesPlayed + "," + game.HandsPlayed + "," + game.TotalMoney +","+RandomnessPercentage +"\n");
 
 
     var DataToTrainOn = NerualNetworkHelper.GetTrainingDataFromDatabse(rules.name,game.ActionRecordCollectionNameModifier);

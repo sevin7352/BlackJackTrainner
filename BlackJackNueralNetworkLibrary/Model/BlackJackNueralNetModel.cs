@@ -86,13 +86,13 @@ namespace BlackJackNueralNetworkLibrary.Model
 
             //var retrainedModel = model.Transform(trainData); // Apply the transformations
 
-            var finalModel = pipeline.Fit(trainData);
+            Model = pipeline.Fit(trainData);
 
             // Save the retrained model
             SaveModel();
 
             PredictionEngine = mlContext.Model.CreatePredictionEngine<NueralNetTrainingDataEntry, NueralNetworkOutput>(Model);
-            return finalModel;
+            return Model;
         }
 
         public PredictionEngine<NueralNetTrainingDataEntry,NueralNetworkOutput> PredictionEngine { get; set; }

@@ -85,6 +85,16 @@ namespace BlackJackClasses.Model
 
         public HandSuggestions HandSuggesstion { get; set; }
 
+        public ActionTypes SuggestedAction { get
+            {
+                if(HandSuggesstion == null)
+                {
+                    return ActionTypes.Stay;
+                }
+
+                return HandSuggesstion.SuggestedAction(canSplit, canDouble, canHit);
+            } }
+
         public double MoneyReturn
         {
             get { return (MoneyWon - EndingBet) / StartingBet; }
