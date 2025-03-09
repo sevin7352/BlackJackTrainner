@@ -18,6 +18,7 @@ namespace BlackJackClasses.Model
 
         public GameState(BlackJackRules rules, PlayStrategiesTypes playStrategiesType = PlayStrategiesTypes.SingleHandBook,int numberOfHandsToPlay = 1)
         {
+            NumberOfTimesNoSummaryFound = 0;
             Random = new Random();
             GameId = DateTimeOffset.Now.UtcTicks;
             CardCount = 0;
@@ -35,6 +36,7 @@ namespace BlackJackClasses.Model
 
         public long GameId;
         public int CardCount { get; set; }
+        public int NumberOfTimesNoSummaryFound { get; set; }
         public int TrueCardCount { get
             {
                 int numberOfCards = (Rules.numberOfDecks * 52);
@@ -560,10 +562,11 @@ namespace BlackJackClasses.Model
                     var playersHand = PlayersHand[playerIndexToCalulateFor];
                     var suggestion = BlackJackActionRecordHelper.GetHandSuggestions(Rules.name, playersHand, TrueCardCount);
                     if (suggestion != null) {
-                        playersHand.HandSuggesstion = suggestion;
+                        playersHand.HandSuggesstion = suggestion;                    
                     }
                     else
                     {
+                        NumberOfTimesNoSummaryFound++;
                         Console.WriteLine("No Relevant Records-Use Random");
                         playersHand.HandSuggesstion = HandResultExtensions.GetRandomSuggestions(PlayersHand[playerIndexToCalulateFor], Random);
 

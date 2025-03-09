@@ -12,6 +12,7 @@ var rules = BlackJackRuleSetHelper.AllowUserToSelectRuleSet();
 // Deck count range (-40 to 40)
 var deckCounts = Enumerable.Range(-40, 81);
 deckCounts = deckCounts.OrderBy(d => Math.Abs(d)).ToList();
+DateTime start = DateTime.Now;
 
 // Parallel processing
 foreach(var deckCount in deckCounts)
@@ -83,15 +84,13 @@ foreach(var deckCount in deckCounts)
                     summary = BlackJackActionRecordHelper.GetHandSuggestions(rules.name, playersHand, deckCount);
                 }
             }
-            
-            
-
-                    
-                
-            
         });
     }
 }
+
+Console.WriteLine("Start: " + start.ToString("G"));
+Console.WriteLine("End: " + DateTime.Now.ToString("G"));
+Console.WriteLine("elapsed Time: " + (DateTime.Now - start).ToString("hh:mm:ss"));
 
 
 

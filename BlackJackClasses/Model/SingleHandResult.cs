@@ -67,12 +67,14 @@ namespace BlackJackClasses.Model
         public int NumberOfHandsWon { get; set; }
         public int NumberOfHandsLost { get; set; }
         public int NumberOfHandspushed { get; set; }
-        //ToDo Define How Return should be determined.  using expected value.
         public double Return
         {
             get
             {
-                if (NumberOfHands == 0) return 0; // Avoid division by zero
+                if (NumberOfHands == 0)
+                {
+                    return 0; // Avoid division by zero
+                }
 
                 return (double)(NumberOfHandsWon - NumberOfHandsLost) / NumberOfHands;
             }

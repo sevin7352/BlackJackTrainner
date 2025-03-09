@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using BlackJackClasses.Enums;
@@ -156,6 +157,11 @@ namespace BlackJackClasses.Model
             {
                 string flag = string.Empty;
             }
+            if(result.NumberOfHands <10)
+            {
+                Console.WriteLine("Less than 10 samples");
+            }
+
             foreach (var actionresult in actionResults)
             {
                 switch (actionresult.Type)
@@ -175,9 +181,6 @@ namespace BlackJackClasses.Model
                         break;
                 }
             }
-
-
-
 
 
             return handSuggesstion;

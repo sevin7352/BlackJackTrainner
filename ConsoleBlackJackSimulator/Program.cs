@@ -9,7 +9,7 @@ Console.WriteLine("Hello, World!");
 var rules = BlackJackRuleSetHelper.AllowUserToSelectRuleSet();
 
 //var existingRecords = BlackJackActionRecordHelper.LoadAllRecords(rules.name);
-int MaxShutesToPlay = 100;
+int MaxShutesToPlay = 1000;
 var game = new GameState(rules, PlayStrategiesTypes.SingleHandAdaptive);
 game.Start();
 int updatecount = 0;
@@ -24,7 +24,7 @@ while (game.InGame && game.ShutesPlayed <= MaxShutesToPlay)
         currentshute = game.ShutesPlayed;
         Console.WriteLine("Number Of Shutes Played:"+currentshute);
         Console.WriteLine("TotalMoney:" + game.TotalMoney);
-
+        Console.WriteLine("NumberOfTimesNoSummaryFound:" + game.NumberOfTimesNoSummaryFound);
     }
 
     while (!game.PlayersTurnDone)
@@ -59,6 +59,7 @@ while (game.InGame && game.ShutesPlayed <= MaxShutesToPlay)
 }
 
 Console.WriteLine("NumbersOfHandsPlayed:" + game.HandsPlayed + " EndingMoney:" + game.TotalMoney);
+Console.WriteLine("NumberOfTimesNoSummaryFound:" + game.NumberOfTimesNoSummaryFound);
 Console.ReadLine();
 
 

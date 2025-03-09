@@ -19,7 +19,7 @@ namespace BlackJackClasses.Helpers
     {
         private const string ConnectionString = "mongodb://localhost:27017/";
         private const string mongoBatabaseName = "BlackJackDataBase";
-        private const string actionResultSummaryCollectionName = "_ActionResultSummary_Deep";
+        private const string actionResultSummaryCollectionName = "_ActionResultSummary_Deep2";
         
 
         static BlackJackActionRecordHelper()
@@ -75,11 +75,10 @@ namespace BlackJackClasses.Helpers
             return results;
         }
 
+
         public static HandSuggestions GetHandSuggestions(string RulesName, PlayersHand playersHand,int deckCount,int depth = 0)
         {
-            //Rework To pull from Summary
-
-            //Rework to Look in summary collection first.
+            
             var mongoClient = new MongoClient(ConnectionString);
             var ruleDatacollection = mongoClient.GetDatabase(mongoBatabaseName).GetCollection<BlackJackActionRecord>(RulesName);
             var ruleSummarycollection = mongoClient.GetDatabase(mongoBatabaseName).GetCollection<SingleHandResult>(RulesName + actionResultSummaryCollectionName);
@@ -90,8 +89,10 @@ namespace BlackJackClasses.Helpers
                 if(summariesForHand.Count()>1)
                 {
                     Console.WriteLine("This Should not Happen");
-                    var idsToDelete = summariesForHand.OrderBy(p => p.NumberOfHands).ToList();
-                    ruleSummarycollection.DeleteOne(p=> p.Id == idsToDelete[0].Id);
+                    var idToKeep = summariesForHand.OrderByDescending(p => p.NumberOfHands).ToList().FirstOrDefault().Id;
+                    var idsToDelete = summariesForHand.Where(p=>p.Id != idToKeep).Select(x=>x.Id).ToList();
+                    ruleSummarycollection.DeleteMany(p=> idsToDelete.Contains(p.Id));
+                    return GetHandSuggestions(RulesName, playersHand, deckCount,depth);
                 }
                 
                     Console.WriteLine("Summary found:" + summariesForHand.Count + " Dealer Card:" + playersHand.DealersUpCardValue + " Players Hand:" + playersHand.CurrentValue.ToString() + " Deck Count:" + deckCount);
@@ -100,7 +101,7 @@ namespace BlackJackClasses.Helpers
                 
             
             }
-            if (depth > 5)  // Prevent infinite recursion
+            if (depth > 15)  // Prevent infinite recursion
             {
                 Console.WriteLine("Max recursion depth reached in GetHandSuggestions.");
                 return null;
@@ -113,8 +114,7 @@ namespace BlackJackClasses.Helpers
             return HandResultExtensions.GetFromSingleHandResult(createdSummary);
         }
 
-        //TODO look at how to look multiple levels deep.  Basically when looking at an action that can be followed by another action (hit and split)
-        //only count the hand where the best next action was used. -> recursivly. <- will be slow but worth it.
+        
         private static SingleHandResult CreateSingleHandResultFromRecords(string RulesName, PlayersHand playersHand, int deckCount, int depth = 0)
         {
 
@@ -131,161 +131,87 @@ namespace BlackJackClasses.Helpers
                 return null;
             }
 
-            // Group by action and calculate win probability
             
+            //TODO need to get all data from these hands.
+            // Sort actions in descending order (work backwards)
+            var handsByGame = records.GroupBy(r => new { r.GameId, r.HandId })
+                                     .Select(g => g.OrderByDescending(a => a.ActionIndex).ToList())
+                                     .ToList();
+
+
             var summary = new SingleHandResult(playersHand.CurrentValue,playersHand.DealersUpCardValue, deckCount,playersHand.ContainsAceValuedAt11, playersHand.canSplit, playersHand.canDouble) {CanHit = playersHand.canHit };
-            var groupedActions = records.Where(r => IsOptimalFollowOn(r, RulesName, depth)).GroupBy(r => r.Action) //.Where(r => IsOptimalFollowOn(r, RulesName))
-                .ToDictionary(g => g.Key, g => new
-                {
-                    Total = g.Count(),
-                    Push = g.Count(x => x.GameOutcome == HandResultTypes.Push),
-                    Lost = g.Count(x => x.GameOutcome == HandResultTypes.Loose),
-                    Wins = g.Count(r => r.GameOutcome == HandResultTypes.Win || r.GameOutcome == HandResultTypes.BlackJack)
-                });
-            
 
-            int totalActions = records.Count;
 
-            if (groupedActions.TryGetValue(ActionTypes.Stay, out var stayStats))
+            foreach (var handActions in handsByGame)
             {
-                var set = summary.ActionResults.FirstOrDefault(p => p.Type == ActionTypes.Stay);
-                if (set != null)
+                bool isHandOptimal = true;  // Assume the hand is optimal at first
+
+                for (int i = 0; i < handActions.Count; i++)
                 {
-                    summary.ActionResults.Remove(set);
+                    var action = handActions[i];
+
+                    if (!IsOptimalFollowOn(action, RulesName,depth))
+                    {
+                        isHandOptimal = false;
+                    }
+
+                    if (isHandOptimal)
+                    {
+                        AddToSummary(summary, action);
+                    }
                 }
-
-                var toAdd = new ActionResult(ActionTypes.Stay)
-                {
-                    NumberOfHands = stayStats.Total,
-                    NumberOfHandsLost = stayStats.Lost,
-                    NumberOfHandspushed = stayStats.Push,
-                    NumberOfHandsWon = stayStats.Wins,
-                };
-
-                
-                    summary.ActionResults.Add(toAdd);
-                
-
-            }
-            
-
-            if (groupedActions.TryGetValue(ActionTypes.Hit, out var hitStats))
-            {
-                var set = summary.ActionResults.FirstOrDefault(p => p.Type == ActionTypes.Hit);
-                if (set != null)
-                {
-                    summary.ActionResults.Remove(set);
-                }
-                var toAdd = new ActionResult(ActionTypes.Hit)
-                {
-                    NumberOfHands = hitStats.Total,
-                    NumberOfHandsLost = hitStats.Lost,
-                    NumberOfHandspushed = hitStats.Push,
-                    NumberOfHandsWon = hitStats.Wins,
-                };
-
-                
-                    summary.ActionResults.Add(toAdd);
-                
             }
 
-            if (groupedActions.TryGetValue(ActionTypes.Split, out var splitStats))
-            {
-                var set = summary.ActionResults.FirstOrDefault(p => p.Type == ActionTypes.Split);
-                if (set != null)
-                {
-                    summary.ActionResults.Remove(set);
-                }
-                var toAdd = new ActionResult(ActionTypes.Split)
-                {
-                    NumberOfHands = splitStats.Total,
-                    NumberOfHandsLost = splitStats.Lost,
-                    NumberOfHandspushed = splitStats.Push,
-                    NumberOfHandsWon = splitStats.Wins,
-                };
-
-                    summary.ActionResults.Add(toAdd);
-                
-            }
-
-            if (groupedActions.TryGetValue(ActionTypes.Double, out var doubleStats))
-            {
-                var set = summary.ActionResults.FirstOrDefault(p => p.Type == ActionTypes.Double);
-                if (set != null)
-                {
-                    summary.ActionResults.Remove(set);
-                }
-
-                var toAdd = new ActionResult(ActionTypes.Double)
-                {
-                    NumberOfHands = doubleStats.Total,
-                    NumberOfHandsLost = doubleStats.Lost,
-                    NumberOfHandspushed = doubleStats.Push,
-                    NumberOfHandsWon = doubleStats.Wins,
-                };
-
-               
-                summary.ActionResults.Add(toAdd);
-                
-            }
-
-
-            //Save To DB before Saving
             ruleSummarycollection.InsertOne(summary);
-
             return summary;
         }
+
         private static bool IsOptimalFollowOn(BlackJackActionRecord action,string RulesName,int depth = 0)
         {
             var mongoClient = new MongoClient(ConnectionString);
             var ruleDatacollection = mongoClient.GetDatabase(mongoBatabaseName).GetCollection<BlackJackActionRecord>(RulesName);
 
-            // Find all subsequent actions for the same hand
-            var followOnActions = ruleDatacollection.AsQueryable().Where(a =>a.GameId == action.GameId && a.HandId == action.HandId && a.ActionIndex > action.ActionIndex) // Find ALL future actions
-        .OrderBy(a => a.ActionIndex) // Ensure we process them in order
-        .ToList();
+            // Find the next action in this hand (moving backward)
+            var nextAction = ruleDatacollection.AsQueryable()
+                .Where(a => a.GameId == action.GameId && a.HandId == action.HandId && a.ActionIndex > action.ActionIndex)
+                .OrderBy(a => a.ActionIndex)  // Get the next action
+                .FirstOrDefault();
 
-            if (followOnActions.Count == 0)
+            if (nextAction == null)
             {
-                // If no follow-on actions exist, evaluate this action alone
-                return true;
+                return true;  // If this is the last action, assume it's optimal
             }
 
-            foreach (var nextAction in followOnActions)
+            var playerHand = PlayersHandHelper.CreatePlayersHand(nextAction.PlayerTotal, nextAction.DealerUpCard, nextAction.CanSplit, nextAction.CanDouble, nextAction.ContainsAceValuedAs11);
+            var suggestion = GetHandSuggestions(RulesName, playerHand, nextAction.DeckCount, depth);
+
+            if (suggestion == null)
             {
-                if (nextAction.Action == ActionTypes.Stay || nextAction.ResultedInBust)
-                {
-                    // Hand is finished (either the player stood or busted)
-                    return true;
-                }
-
-                // Get the best recommended action for this situation
-                var playerHand = PlayersHandHelper.CreatePlayersHand(
-                    nextAction.PlayerTotal, nextAction.DealerUpCard,
-                    nextAction.CanSplit, nextAction.CanDouble,
-                    nextAction.ContainsAceValuedAs11);
-
-                var suggestion = GetHandSuggestions(RulesName, playerHand, nextAction.DeckCount, depth);
-
-                if (suggestion == null)
-                {
-                    return false; // No suggestion? Assume not optimal.
-                }
-
-                ActionTypes bestAction = suggestion.SuggestedAction(
-                    nextAction.CanSplit, nextAction.CanDouble, true);
-
-                // If any action taken is NOT optimal, return false
-                if (bestAction != nextAction.Action)
-                {
-                    return false;
-                }
+                //No Suggestion Found we don't know if this is optimal or not.
+                return false;
             }
 
-            // If all follow-on actions are optimal, return true
-            return true;
+            ActionTypes bestAction = suggestion.SuggestedAction(nextAction.CanSplit, nextAction.CanDouble, true);
+
+            return bestAction == nextAction.Action;
         }
 
+        private static void AddToSummary(SingleHandResult summary, BlackJackActionRecord action)
+        {
+            var existing = summary.ActionResults.FirstOrDefault(p => p.Type == action.Action);
+            if (existing != null)
+            {
+                summary.ActionResults.Remove(existing);
+            }
+
+            summary.ActionResults.Add(new ActionResult(action.Action)
+            {
+                NumberOfHands = existing?.NumberOfHands + 1 ?? 1,
+                NumberOfHandsLost = existing?.NumberOfHandsLost + (action.GameOutcome == HandResultTypes.Loose ? 1 : 0) ?? (action.GameOutcome == HandResultTypes.Loose ? 1 : 0),
+                NumberOfHandspushed = existing?.NumberOfHandspushed + (action.GameOutcome == HandResultTypes.Push ? 1 : 0) ?? (action.GameOutcome == HandResultTypes.Push ? 1 : 0),
+                NumberOfHandsWon = existing?.NumberOfHandsWon + (action.GameOutcome == HandResultTypes.Win || action.GameOutcome == HandResultTypes.BlackJack ? 1 : 0) ?? (action.GameOutcome == HandResultTypes.Win || action.GameOutcome == HandResultTypes.BlackJack ? 1 : 0),
+            });
+        }
 
     }
 }
